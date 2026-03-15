@@ -99,7 +99,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
             >
-              <LogOut size={13} /> Sign Out
+              <LogOut size={13} /> <span className="signout-label">Sign Out</span>
             </button>
           </div>
         </header>

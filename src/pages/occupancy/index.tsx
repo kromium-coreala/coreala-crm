@@ -148,7 +148,7 @@ export default function Occupancy() {
                 <Plus size={12} /> New Booking
               </Link>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
+            <div className="occupancy-grid">
               {SUITES.map(room => (
                 <UnitCard key={room} room={room} type="Private Suite" />
               ))}
@@ -163,7 +163,7 @@ export default function Occupancy() {
                 Villas <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>V01 – V06</span>
               </h2>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
+            <div className="occupancy-grid">
               {VILLAS.map(room => (
                 <UnitCard key={room} room={room} type="Oceanfront Villa" />
               ))}
