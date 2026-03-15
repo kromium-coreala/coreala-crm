@@ -1,3 +1,5 @@
+export type CurrencyCode = 'USD' | 'BBD' | 'GBP' | 'EUR' | 'CAD' | 'KYD' | 'TTD' | 'JMD' | 'JPY' | 'SEK'
+
 export const CURRENCIES: Record<string, { symbol: string; name: string; rate: number }> = {
   USD: { symbol: '$',  name: 'US Dollar',          rate: 1     },
   BBD: { symbol: 'Bds$', name: 'Barbados Dollar',  rate: 2     },
