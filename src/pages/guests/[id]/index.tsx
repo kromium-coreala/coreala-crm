@@ -7,6 +7,7 @@ import { format, parseISO } from 'date-fns'
 import { ArrowLeft, Edit, Cake, Gift, Star, Plane, Utensils, Bed, Heart } from 'lucide-react'
 import { formatCurrency } from '@/lib/currency'
 import { useDiscretionMode } from '@/components/layout/Sidebar'
+import PersonalisationEngine from '@/components/PersonalisationEngine'
 
 export default function GuestProfile() {
   const router = useRouter()
@@ -189,6 +190,13 @@ export default function GuestProfile() {
 
         {/* Right column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Personalisation Engine */}
+          <PersonalisationEngine
+            guest={guest}
+            reservations={reservations}
+            experiences={experiences}
+          />
+
           {/* Important dates */}
           <div className="card card-elevated">
             <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)', marginBottom: 16 }}>Important Dates</div>

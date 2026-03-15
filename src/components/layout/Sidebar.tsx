@@ -4,7 +4,8 @@ import { useRouter } from 'next/router'
 import {
   LayoutDashboard, Users, CalendarDays, Sparkles, Heart,
   PartyPopper, AlertTriangle, TrendingUp, Settings, X, Menu,
-  Shield, BedDouble, Package, BarChart3, Sun, Moon, EyeOff, Eye
+  Shield, BedDouble, Package, BarChart3, Sun, Moon, EyeOff, Eye,
+  UtensilsCrossed, ClipboardCheck
 } from 'lucide-react'
 
 // ─── Contexts ────────────────────────────────────────────────────
@@ -19,19 +20,21 @@ const NAV = [
   {
     label: 'Operations',
     items: [
-      { href: '/',             icon: LayoutDashboard, label: 'Dashboard'    },
-      { href: '/occupancy',    icon: BedDouble,       label: 'Occupancy'    },
-      { href: '/guests',       icon: Users,           label: 'Guests'       },
-      { href: '/reservations', icon: CalendarDays,    label: 'Reservations' },
+      { href: '/',             icon: LayoutDashboard, label: 'Dashboard'   },
+      { href: '/occupancy',    icon: BedDouble,       label: 'Occupancy'   },
+      { href: '/guests',       icon: Users,           label: 'Guests'      },
+      { href: '/reservations', icon: CalendarDays,    label: 'Reservations'},
+      { href: '/pre-arrival',  icon: ClipboardCheck,  label: 'Pre-Arrival' },
     ],
   },
   {
     label: 'Revenue',
     items: [
-      { href: '/experiences', icon: Sparkles,      label: 'Experiences'  },
-      { href: '/wellness',    icon: Heart,          label: 'Wellness'     },
-      { href: '/events',      icon: PartyPopper,    label: 'Events'       },
-      { href: '/revenue',     icon: TrendingUp,     label: 'Revenue'      },
+      { href: '/experiences', icon: Sparkles,         label: 'Experiences' },
+      { href: '/wellness',    icon: Heart,             label: 'Wellness'    },
+      { href: '/dining',      icon: UtensilsCrossed,   label: 'Dining'      },
+      { href: '/events',      icon: PartyPopper,       label: 'Events'      },
+      { href: '/revenue',     icon: TrendingUp,        label: 'Revenue'     },
     ],
   },
   {
