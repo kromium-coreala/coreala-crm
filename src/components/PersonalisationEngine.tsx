@@ -93,14 +93,10 @@ Based on ALL of this, generate a JSON object with this EXACT structure (no markd
 Generate exactly 6 suggestions covering: Room Setup, Dining, Experiences, Wellness, Transport/Arrival, and one surprise/delight moment. Confidence must be one of: High, Medium, Likely. Be SPECIFIC — use actual names, dates, preferences from the profile. Never be generic. This is a $2,500/night retreat.`
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: prompt }],
-        }),
+        body: JSON.stringify({ prompt }),
       })
 
       const data = await response.json()
