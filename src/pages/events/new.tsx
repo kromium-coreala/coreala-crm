@@ -1,129 +1,50 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabase'
-import { formatCurrency } from '@/lib/currency'
-import { format, parseISO } from 'date-fns'
 import { ArrowLeft, Save } from 'lucide-react'
+import { CURRENCIES, CurrencyCode } from '@/lib/currency'
 import toast from 'react-hot-toast'
 
 export default function NewEvent() {
   const router = useRouter()
+  const [form, setForm] = useState({ name:'', event_type:'private_dinner', date:'', guest_count:10, contact_name:'', contact_email:'', contact_phone:'', budget:'', currency:'USD' as CurrencyCode, status:'enquiry', notes:'' })
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({
-    name: '', event_type: 'wedding', date: '',
-    guest_count: 20, contact_name: '', contact_email: '',
-    contact_phone: '', budget: '', currency: 'USD',
-    status: 'enquiry', notes: '',
-  })
-
-  function set(k: string, v: any) { setForm(p => ({ ...p, [k]: v })) }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  const f = (k:string) => (v:any) => setForm(p=>({...p,[k]:v.target?.value??v}))
+  async function save() {
+    if (!form.name||!form.date||!form.contact_name||!form.contact_email) return toast.error('Name, date and contact required')
     setSaving(true)
-    try {
-      const { error } = await supabase.from('events').insert({
-        ...form,
-        budget: form.budget ? Number(form.budget) : null,
-        guest_count: Number(form.guest_count),
-      })
-      if (error) throw error
-      toast.success('Event created')
-      router.push('/events')
-    } catch (err: any) {
-      toast.error(err.message)
-    } finally {
-      setSaving(false)
-    }
+    const {error} = await supabase.from('events').insert({...form,guest_count:Number(form.guest_count),budget:form.budget?Number(form.budget):null})
+    if (error) { toast.error(error.message); setSaving(false) }
+    else { toast.success('Event created'); router.push('/events') }
   }
-
-  const Field = ({ label, children }: any) => <div><label className="label-luxury">{label}</label>{children}</div>
-
   return (
     <>
-      <Head><title>New Event · Coraléa CRM</title></Head>
-      <Link href="/events" className="flex items-center gap-2 mb-4" style={{ color: 'var(--text-dim)' }}>
-        <ArrowLeft size={14} />
-        <span className="font-cinzel text-[9px] tracking-widest" style={{ letterSpacing: '0.3em' }}>EVENTS</span>
-      </Link>
-      <div className="mb-5">
-        <span className="eyebrow">Private Event</span>
-        <h1 className="module-title mt-1">Create <span className="font-cormorant italic" style={{ color: 'var(--sand-light)' }}>Event</span></h1>
+      <Head><title>New Event — Coraléa CRM</title></Head>
+      <div style={{marginBottom:24}}>
+        <Link href="/events" className="btn btn-ghost btn-sm" style={{marginBottom:16}}><ArrowLeft size={13}/>Back</Link>
+        <div className="page-header" style={{marginBottom:0,display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+          <div><div className="page-eyebrow">Occasions</div><div className="page-title">New <em>Event</em></div></div>
+          <button className="btn btn-primary" onClick={save} disabled={saving}><Save size={13}/>{saving?'Saving…':'Create Event'}</button>
+        </div>
       </div>
-
-      <form onSubmit={handleSubmit}>
-        <div className="card mb-4">
-          <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <span className="eyebrow" style={{ fontSize: '8px' }}>Event Details</span>
-          </div>
-          <div className="p-4 space-y-4">
-            <Field label="Event Name *">
-              <input className="input-box" value={form.name} onChange={e => set('name', e.target.value)} required placeholder="e.g. Williams Wedding Reception" />
-            </Field>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Type">
-                <select className="input-box" value={form.event_type} onChange={e => set('event_type', e.target.value)}>
-                  {['wedding','corporate','birthday','anniversary','private_dinner','other'].map(t => (
-                    <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Date *">
-                <input type="date" className="input-box" value={form.date} onChange={e => set('date', e.target.value)} required />
-              </Field>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Guest Count">
-                <input type="number" min="1" max="60" className="input-box" value={form.guest_count} onChange={e => set('guest_count', e.target.value)} />
-              </Field>
-              <Field label="Status">
-                <select className="input-box" value={form.status} onChange={e => set('status', e.target.value)}>
-                  {['enquiry','planning','confirmed'].map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </Field>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Budget">
-                <input type="number" className="input-box" value={form.budget} onChange={e => set('budget', e.target.value)} />
-              </Field>
-              <Field label="Currency">
-                <select className="input-box" value={form.currency} onChange={e => set('currency', e.target.value)}>
-                  {['USD','BBD','GBP','EUR','CAD','KYD'].map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </Field>
-            </div>
-          </div>
+      <div className="grid-2">
+        <div className="card card-elevated">
+          <div style={{fontFamily:'var(--font-editorial)',fontSize:18,marginBottom:16}}>Event Details</div>
+          <div className="form-group"><label>Event Name</label><input className="input" placeholder="e.g. Hartfield New Year Dinner" value={form.name} onChange={f('name')}/></div>
+          <div className="form-row"><div className="form-group"><label>Type</label><select className="select" value={form.event_type} onChange={f('event_type')}><option value="private_dinner">Private Dinner</option><option value="wedding">Wedding</option><option value="anniversary">Anniversary</option><option value="corporate">Corporate</option><option value="birthday">Birthday</option><option value="other">Other</option></select></div><div className="form-group"><label>Status</label><select className="select" value={form.status} onChange={f('status')}><option value="enquiry">Enquiry</option><option value="planning">Planning</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div></div>
+          <div className="form-row"><div className="form-group"><label>Date</label><input className="input" type="date" value={form.date} onChange={f('date')}/></div><div className="form-group"><label>Guest Count</label><input className="input" type="number" min={1} max={60} value={form.guest_count} onChange={f('guest_count')}/></div></div>
+          <div className="form-row"><div className="form-group"><label>Budget</label><input className="input" type="number" value={form.budget} onChange={f('budget')}/></div><div className="form-group"><label>Currency</label><select className="select" value={form.currency} onChange={f('currency')}>{Object.keys(CURRENCIES).map(c=><option key={c}>{c}</option>)}</select></div></div>
+          <div className="form-group" style={{marginBottom:0}}><label>Notes</label><textarea className="input" rows={4} value={form.notes} onChange={f('notes')}/></div>
         </div>
-
-        <div className="card mb-4">
-          <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <span className="eyebrow" style={{ fontSize: '8px' }}>Contact Details</span>
-          </div>
-          <div className="p-4 space-y-4">
-            <Field label="Contact Name *">
-              <input className="input-box" value={form.contact_name} onChange={e => set('contact_name', e.target.value)} required />
-            </Field>
-            <Field label="Contact Email *">
-              <input type="email" className="input-box" value={form.contact_email} onChange={e => set('contact_email', e.target.value)} required />
-            </Field>
-            <Field label="Contact Phone">
-              <input className="input-box" value={form.contact_phone} onChange={e => set('contact_phone', e.target.value)} />
-            </Field>
-            <Field label="Notes">
-              <textarea className="input-box" rows={4} value={form.notes} onChange={e => set('notes', e.target.value)} />
-            </Field>
-          </div>
+        <div className="card card-elevated">
+          <div style={{fontFamily:'var(--font-editorial)',fontSize:18,marginBottom:16}}>Contact Details</div>
+          <div className="form-group"><label>Contact Name</label><input className="input" value={form.contact_name} onChange={f('contact_name')}/></div>
+          <div className="form-group"><label>Contact Email</label><input className="input" type="email" value={form.contact_email} onChange={f('contact_email')}/></div>
+          <div className="form-group"><label>Contact Phone</label><input className="input" value={form.contact_phone} onChange={f('contact_phone')}/></div>
         </div>
-
-        <div className="flex gap-3 mb-8">
-          <button type="submit" className="btn-primary flex-1 justify-center" disabled={saving}>
-            <Save size={14} /> {saving ? 'Creating...' : 'Create Event'}
-          </button>
-          <Link href="/events" className="btn-ghost text-center" style={{ flex: 1 }}>Cancel</Link>
-        </div>
-      </form>
+      </div>
     </>
   )
 }

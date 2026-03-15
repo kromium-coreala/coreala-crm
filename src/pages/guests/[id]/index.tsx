@@ -3,270 +3,249 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabase'
-import { formatCurrency } from '@/lib/currency'
 import { format, parseISO } from 'date-fns'
-import { ArrowLeft, Edit, Shield, Star, Calendar, DollarSign, Sparkles, ChevronRight, Cake, Heart } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { ArrowLeft, Edit, Cake, Gift, Star, Plane, Utensils, Bed, Heart } from 'lucide-react'
+import { formatCurrency } from '@/lib/currency'
+import { useDiscretionMode } from '@/components/layout/Sidebar'
 
-export default function GuestDetail() {
+export default function GuestProfile() {
   const router = useRouter()
   const { id } = router.query
+  const { discretion } = useDiscretionMode()
   const [guest, setGuest] = useState<any>(null)
   const [reservations, setReservations] = useState<any[]>([])
   const [experiences, setExperiences] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { if (id) loadGuest() }, [id])
+  useEffect(() => { if (id) load() }, [id])
 
-  async function loadGuest() {
-    const [guestRes, resRes, expRes] = await Promise.all([
+  async function load() {
+    const [gRes, rRes, eRes] = await Promise.all([
       supabase.from('guests').select('*').eq('id', id).single(),
-      supabase.from('reservations').select('*').eq('guest_id', id).order('check_in', { ascending: false }).limit(10),
-      supabase.from('experiences').select('*').eq('guest_id', id).order('date', { ascending: false }).limit(10),
+      supabase.from('reservations').select('*').eq('guest_id', id).order('check_in', { ascending: false }),
+      supabase.from('experiences').select('*').eq('guest_id', id).order('date', { ascending: false }),
     ])
-    setGuest(guestRes.data)
-    setReservations(resRes.data || [])
-    setExperiences(expRes.data || [])
+    setGuest(gRes.data)
+    setReservations(rRes.data || [])
+    setExperiences(eRes.data || [])
     setLoading(false)
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-64">
-      <div className="font-cormorant italic" style={{ color: 'var(--text-dim)' }}>Loading profile...</div>
-    </div>
-  )
+  if (loading) return <div style={{ padding: 40, color: 'var(--text-muted)' }}>Loading…</div>
+  if (!guest) return <div style={{ padding: 40, color: 'var(--text-muted)' }}>Guest not found</div>
 
-  if (!guest) return (
-    <div className="text-center py-12">
-      <div className="font-cormorant italic text-xl" style={{ color: 'var(--text-dim)' }}>Guest not found</div>
-      <Link href="/guests" className="btn-primary mt-4 inline-flex">Back to Guests</Link>
-    </div>
-  )
+  const maskedName = () => {
+    if (discretion && guest.discretion_level === 'maximum') return '— Confidential —'
+    if (discretion && guest.discretion_level === 'high') return `${guest.first_name?.[0]}. ${guest.last_name?.[0]}.`
+    return `${guest.first_name} ${guest.last_name}`
+  }
 
   return (
     <>
-      <Head><title>{guest.first_name} {guest.last_name} · Coraléa CRM</title></Head>
+      <Head><title>{maskedName()} — Coraléa CRM</title></Head>
 
-      {/* Back */}
-      <Link href="/guests" className="flex items-center gap-2 mb-4" style={{ color: 'var(--text-dim)' }}>
-        <ArrowLeft size={14} />
-        <span className="font-cinzel text-[9px] tracking-widest" style={{ letterSpacing: '0.3em' }}>ALL GUESTS</span>
-      </Link>
-
-      {/* Profile header */}
-      <div className="card p-5 mb-4 animate-fade-up">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 flex items-center justify-center relative"
-              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-              <span className="font-cormorant italic text-2xl" style={{ color: 'var(--sand)' }}>
-                {guest.first_name?.[0]}{guest.last_name?.[0]}
-              </span>
-              {guest.discretion_level === 'maximum' && (
-                <div className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center"
-                  style={{ background: 'var(--obsidian)', border: '1px solid rgba(196,168,130,0.3)' }}>
-                  <Shield size={10} style={{ color: 'var(--sand)' }} />
-                </div>
-              )}
+      <div style={{ marginBottom: 24 }}>
+        <Link href="/guests" className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }}>
+          <ArrowLeft size={13} /> Back to Guests
+        </Link>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: 'var(--gold-glow)', border: '2px solid var(--border-mid)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--gold)',
+              letterSpacing: '0.05em', flexShrink: 0,
+            }}>
+              {discretion && guest.discretion_level === 'maximum' ? '?' : `${guest.first_name?.[0]}${guest.last_name?.[0]}`}
             </div>
             <div>
-              <h1 className="font-cormorant text-2xl font-light" style={{ color: 'var(--text-primary)' }}>
-                {guest.first_name} {guest.last_name}
-              </h1>
-              <div className="flex items-center gap-2 mt-1">
-                <VIPBadge tier={guest.vip_tier} />
-                {guest.discretion_level !== 'standard' && (
-                  <span className="badge badge-danger">{guest.discretion_level} disc.</span>
-                )}
+              <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 28, fontWeight: 300, color: 'var(--text-primary)' }}>{maskedName()}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <span className={`badge badge-${guest.vip_tier}`}>{guest.vip_tier}</span>
+                {guest.discretion_level !== 'standard' && <span className={`badge badge-${guest.discretion_level}`}>{guest.discretion_level} disc.</span>}
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{guest.nationality}</span>
               </div>
             </div>
           </div>
-          <Link href={`/guests/${id}/edit`}>
-            <Edit size={16} style={{ color: 'var(--text-dim)' }} />
+          <Link href={`/guests/${id}/edit`} className="btn btn-ghost">
+            <Edit size={13} /> Edit Profile
           </Link>
         </div>
+      </div>
 
-        {/* Key stats */}
-        <div className="grid grid-cols-3 gap-3 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
-          <div className="text-center">
-            <div className="font-cormorant italic text-xl" style={{ color: 'var(--sand)' }}>{guest.total_stays || 0}</div>
-            <div className="eyebrow mt-1" style={{ fontSize: '7px' }}>Stays</div>
+      {/* Stats */}
+      <div className="stat-grid" style={{ marginBottom: 24 }}>
+        <div className="card card-elevated">
+          <div className="card-label">Total Stays</div>
+          <div className="card-value">{guest.total_stays || 0}</div>
+          <div className="card-sub">Lifetime visits</div>
+        </div>
+        <div className="card card-elevated">
+          <div className="card-label">Lifetime Value</div>
+          <div className="card-value">{formatCurrency(guest.total_revenue || 0, 'USD')}</div>
+          <div className="card-sub">Room revenue</div>
+        </div>
+        <div className="card card-elevated">
+          <div className="card-label">Experiences</div>
+          <div className="card-value">{experiences.length}</div>
+          <div className="card-sub">{experiences.filter(e => e.status === 'completed').length} completed</div>
+        </div>
+        <div className="card card-elevated">
+          <div className="card-label">Last Stay</div>
+          <div className="card-value-md" style={{ marginTop: 4 }}>
+            {guest.last_stay ? format(parseISO(guest.last_stay), 'MMM yyyy') : '—'}
           </div>
-          <div className="text-center">
-            <div className="font-cormorant italic text-xl" style={{ color: 'var(--sand)' }}>
-              {formatCurrency(guest.total_revenue || 0)}
-            </div>
-            <div className="eyebrow mt-1" style={{ fontSize: '7px' }}>Revenue</div>
-          </div>
-          <div className="text-center">
-            <div className="font-cormorant italic text-xl" style={{ color: 'var(--sand)' }}>
-              {guest.last_stay ? format(parseISO(guest.last_stay), 'MMM yy') : '—'}
-            </div>
-            <div className="eyebrow mt-1" style={{ fontSize: '7px' }}>Last Stay</div>
-          </div>
+          <div className="card-sub">Most recent visit</div>
         </div>
       </div>
 
-      {/* Personal details */}
-      <div className="card mb-4 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-        <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <span className="eyebrow" style={{ fontSize: '8px' }}>Personal Intelligence</span>
-        </div>
-        <div className="p-4 space-y-4">
-          {[
-            { label: 'Email', value: guest.email },
-            { label: 'Phone', value: guest.phone || '—' },
-            { label: 'Nationality', value: guest.nationality || '—' },
-            { label: 'Preferred Currency', value: guest.preferred_currency || 'USD' },
-            { label: 'Dietary Requirements', value: guest.dietary_requirements || 'None noted' },
-            { label: 'Allergies', value: guest.allergies || 'None noted' },
-            { label: 'Pillow Preference', value: guest.pillow_preference || 'Standard' },
-            { label: 'Room Temperature', value: guest.room_temperature ? `${guest.room_temperature}°C` : '—' },
-            { label: 'Preferred Activities', value: guest.preferred_activities?.join(', ') || '—' },
-            { label: 'Arrival Preference', value: guest.arrival_preference || '—' },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex justify-between items-start gap-4">
-              <span className="font-cinzel text-[8px] tracking-widest flex-shrink-0" style={{ color: 'var(--text-dim)', letterSpacing: '0.25em', minWidth: '120px' }}>
-                {label}
-              </span>
-              <span className="font-raleway text-xs text-right" style={{ color: 'var(--text-muted)' }}>{value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <div className="dashboard-grid">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* Important dates */}
-      {(guest.birthday || guest.anniversary_date) && (
-        <div className="card mb-4 animate-fade-up" style={{ animationDelay: '0.15s' }}>
-          <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <span className="eyebrow" style={{ fontSize: '8px' }}>Important Dates</span>
-          </div>
-          <div className="p-4 space-y-3">
-            {guest.birthday && (
-              <div className="flex items-center gap-3">
-                <Cake size={14} style={{ color: 'var(--sand)' }} />
-                <div>
-                  <div className="eyebrow" style={{ fontSize: '7px' }}>Birthday</div>
-                  <div className="font-cormorant text-sm" style={{ color: 'var(--text-primary)' }}>
-                    {format(parseISO(guest.birthday), 'MMMM d')}
+          {/* Preferences */}
+          <div className="card card-elevated">
+            <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)', marginBottom: 16 }}>Guest Preferences</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12 }}>
+              {[
+                { icon: Utensils, label: 'Dietary', value: guest.dietary_requirements || '—' },
+                { icon: Heart, label: 'Allergies', value: guest.allergies || '—' },
+                { icon: Bed, label: 'Pillow', value: guest.pillow_preference || '—' },
+                { icon: Heart, label: 'Room Temp', value: guest.room_temperature ? `${guest.room_temperature}°C` : '—' },
+                { icon: Plane, label: 'Arrival', value: guest.arrival_preference || '—' },
+                { icon: Star, label: 'Currency', value: guest.preferred_currency || 'USD' },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} style={{ padding: '10px 12px', background: 'var(--bg-overlay)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <Icon size={12} color="var(--gold)" />
+                    <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>{label}</span>
                   </div>
+                  <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>{value}</div>
                 </div>
-              </div>
-            )}
-            {guest.anniversary_date && (
-              <div className="flex items-center gap-3">
-                <Heart size={14} style={{ color: 'var(--sand)' }} />
-                <div>
-                  <div className="eyebrow" style={{ fontSize: '7px' }}>Anniversary</div>
-                  <div className="font-cormorant text-sm" style={{ color: 'var(--text-primary)' }}>
-                    {format(parseISO(guest.anniversary_date), 'MMMM d')}
-                  </div>
+              ))}
+            </div>
+            {guest.preferred_activities?.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>Preferred Activities</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {guest.preferred_activities.map((a: string) => (
+                    <span key={a} className="badge badge-standard">{a}</span>
+                  ))}
                 </div>
               </div>
             )}
           </div>
-        </div>
-      )}
 
-      {/* Notes */}
-      {guest.notes && (
-        <div className="card mb-4 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <span className="eyebrow" style={{ fontSize: '8px' }}>Concierge Notes</span>
+          {/* Stay history */}
+          <div className="card card-elevated">
+            <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)', marginBottom: 16 }}>Stay History</div>
+            {reservations.length === 0 ? (
+              <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No reservations found</div>
+            ) : (
+              <div className="table-wrap">
+                <table>
+                  <thead><tr><th>Room</th><th>Check-in</th><th>Check-out</th><th>Total</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {reservations.map(r => (
+                      <tr key={r.id}>
+                        <td style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--gold)', letterSpacing: '0.1em' }}>{r.room_number}</td>
+                        <td style={{ fontSize: 12 }}>{format(parseISO(r.check_in), 'dd MMM yyyy')}</td>
+                        <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{format(parseISO(r.check_out), 'dd MMM yyyy')}</td>
+                        <td style={{ color: 'var(--gold)', fontSize: 13 }}>{formatCurrency(r.total_amount, r.currency)}</td>
+                        <td><span className={`badge badge-${r.status}`}>{r.status.replace('_', ' ')}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-          <div className="p-4">
-            <p className="font-raleway text-sm" style={{ color: 'var(--text-muted)', lineHeight: 1.7 }}>{guest.notes}</p>
+
+          {/* Experiences */}
+          <div className="card card-elevated">
+            <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)', marginBottom: 16 }}>Experiences</div>
+            {experiences.length === 0 ? (
+              <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No experiences logged</div>
+            ) : (
+              <div className="table-wrap">
+                <table>
+                  <thead><tr><th>Experience</th><th>Type</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {experiences.map(e => (
+                      <tr key={e.id}>
+                        <td style={{ fontSize: 13, fontWeight: 500 }}>{e.name}</td>
+                        <td style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{e.experience_type?.replace('_', ' ')}</td>
+                        <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{format(parseISO(e.date), 'dd MMM yyyy')}</td>
+                        <td style={{ color: 'var(--gold)', fontSize: 13 }}>{e.amount ? formatCurrency(e.amount, e.currency || 'USD') : '—'}</td>
+                        <td><span className={`badge badge-${e.status}`}>{e.status}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Reservation history */}
-      <div className="card mb-4 animate-fade-up" style={{ animationDelay: '0.25s' }}>
-        <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <span className="eyebrow" style={{ fontSize: '8px' }}>Stay History</span>
-          <Link href={`/reservations/new?guest_id=${id}`} className="btn-ghost" style={{ padding: '4px 12px', fontSize: '8px' }}>
-            + NEW
-          </Link>
-        </div>
-        {reservations.length === 0 ? (
-          <div className="p-4 text-center font-cormorant italic" style={{ color: 'var(--text-dim)' }}>No stays recorded</div>
-        ) : (
-          reservations.map((res, i) => (
-            <Link href={`/reservations/${res.id}`} key={res.id}
-              className="flex items-center gap-3 p-4 transition-all"
-              style={{ borderBottom: i < reservations.length - 1 ? '1px solid rgba(196,168,130,0.05)' : 'none' }}>
-              <div className="flex-1">
-                <div className="font-cormorant text-sm" style={{ color: 'var(--text-primary)' }}>
-                  {res.accommodation_type?.replace(/_/g, ' ')}
+        {/* Right column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Important dates */}
+          <div className="card card-elevated">
+            <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)', marginBottom: 16 }}>Important Dates</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {guest.birthday && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'rgba(251,191,36,0.06)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(251,191,36,0.15)' }}>
+                  <Cake size={14} color="#fbbf24" />
+                  <div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>Birthday</div>
+                    <div style={{ fontSize: 13 }}>{format(parseISO(guest.birthday), 'dd MMMM')}</div>
+                  </div>
                 </div>
-                <div className="font-raleway text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
-                  {format(parseISO(res.check_in), 'MMM d')} – {format(parseISO(res.check_out), 'MMM d, yyyy')}
+              )}
+              {guest.anniversary_date && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--gold-glow)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-mid)' }}>
+                  <Gift size={14} color="var(--gold)" />
+                  <div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>Anniversary</div>
+                    <div style={{ fontSize: 13 }}>{format(parseISO(guest.anniversary_date), 'dd MMMM yyyy')}</div>
+                  </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="font-cormorant italic text-sm" style={{ color: 'var(--sand)' }}>
-                  {formatCurrency(res.total_amount, res.currency)}
-                </div>
-                <StatusBadge status={res.status} />
-              </div>
-            </Link>
-          ))
-        )}
-      </div>
+              )}
+              {!guest.birthday && !guest.anniversary_date && (
+                <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No dates recorded</div>
+              )}
+            </div>
+          </div>
 
-      {/* Experience history */}
-      <div className="card mb-4 animate-fade-up" style={{ animationDelay: '0.3s' }}>
-        <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <span className="eyebrow" style={{ fontSize: '8px' }}>Experience History</span>
-        </div>
-        {experiences.length === 0 ? (
-          <div className="p-4 text-center font-cormorant italic" style={{ color: 'var(--text-dim)' }}>No experiences recorded</div>
-        ) : (
-          experiences.map((exp, i) => (
-            <div key={exp.id} className="flex items-center gap-3 p-4"
-              style={{ borderBottom: i < experiences.length - 1 ? '1px solid rgba(196,168,130,0.05)' : 'none' }}>
-              <Sparkles size={13} style={{ color: 'var(--sand)', flexShrink: 0 }} />
-              <div className="flex-1">
-                <div className="font-cormorant text-sm" style={{ color: 'var(--text-primary)' }}>{exp.name}</div>
-                <div className="font-raleway text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
-                  {format(parseISO(exp.date), 'MMM d, yyyy')}
-                </div>
-              </div>
-              <div className="font-cormorant italic text-sm" style={{ color: 'var(--sand)' }}>
-                {formatCurrency(exp.amount, exp.currency)}
+          {/* Contact & passport */}
+          {!discretion && (
+            <div className="card card-elevated">
+              <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)', marginBottom: 16 }}>Contact Details</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[
+                  { label: 'Email', value: guest.email },
+                  { label: 'Phone', value: guest.phone || '—' },
+                  { label: 'Passport', value: guest.passport_number || '—' },
+                  { label: 'Nationality', value: guest.nationality || '—' },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ padding: '8px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{label}</div>
+                    <div style={{ fontSize: 13 }}>{value}</div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))
-        )}
-      </div>
+          )}
 
-      {/* Actions */}
-      <div className="flex gap-3 mb-6">
-        <Link href={`/reservations/new?guest_id=${id}`} className="btn-primary flex-1 justify-center">
-          <Calendar size={14} /> New Reservation
-        </Link>
-        <Link href={`/guests/${id}/edit`} className="btn-ghost flex-1 justify-center text-center">
-          Edit Profile
-        </Link>
+          {/* Concierge notes */}
+          {guest.notes && (
+            <div className="card card-elevated">
+              <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)', marginBottom: 12 }}>Concierge Notes</div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{guest.notes}</div>
+            </div>
+          )}
+        </div>
       </div>
     </>
   )
-}
-
-function VIPBadge({ tier }: { tier?: string }) {
-  const map: Record<string, string> = {
-    standard: 'badge badge-sand',
-    silver: 'badge',
-    gold: 'badge badge-warning',
-    platinum: 'badge badge-platinum',
-  }
-  return <span className={map[tier || 'standard'] || 'badge badge-sand'}>{tier || 'STD'}</span>
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    confirmed: 'badge-success', checked_in: 'badge-info',
-    checked_out: 'badge-sand', cancelled: 'badge-danger', enquiry: 'badge-warning',
-  }
-  return <span className={`badge ${map[status] || 'badge-sand'} mt-1 block text-right`}>{status?.replace(/_/g, ' ')}</span>
 }

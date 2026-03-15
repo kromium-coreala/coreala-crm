@@ -1,118 +1,133 @@
 import Head from 'next/head'
-import { Settings, Shield, Database, DollarSign, Globe } from 'lucide-react'
-import { CURRENCIES } from '@/lib/currency'
+import { Settings, Building, Globe, Shield, Bell } from 'lucide-react'
 
 export default function SettingsPage() {
   return (
     <>
-      <Head><title>Settings · Coraléa CRM</title></Head>
+      <Head><title>Settings — Coraléa CRM</title></Head>
 
-      <div className="mb-5 animate-fade-up">
-        <span className="eyebrow">System</span>
-        <h1 className="module-title mt-1">
-          <span className="font-cormorant italic" style={{ color: 'var(--sand-light)' }}>Settings</span>
-        </h1>
+      <div className="page-header">
+        <div className="page-eyebrow">Configuration</div>
+        <div className="page-title">Settings</div>
+        <div className="page-subtitle">Property configuration and CRM preferences</div>
       </div>
 
-      {/* Property */}
-      <div className="card mb-4 animate-fade-up">
-        <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <div className="flex items-center gap-2">
-            <Globe size={13} style={{ color: 'var(--sand)' }} />
-            <span className="eyebrow" style={{ fontSize: '8px' }}>Property Information</span>
+      <div className="grid-2">
+        {/* Property info */}
+        <div className="card card-elevated">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+            <div className="card-icon"><Building /></div>
+            <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)' }}>Property Details</div>
           </div>
-        </div>
-        <div className="p-4 space-y-4">
-          {[
-            { label: 'Property Name', value: 'Coraléa Private Retreat' },
-            { label: 'Location', value: 'West Coast, Barbados' },
-            { label: 'Total Suites', value: '18 Private Suites' },
-            { label: 'Total Villas', value: '6 Oceanfront Villas' },
-            { label: 'Total Capacity', value: '24 Units' },
-            { label: 'Max Event Guests', value: '60' },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex justify-between items-center">
-              <span className="font-cinzel text-[8px] tracking-widest" style={{ color: 'var(--text-dim)', letterSpacing: '0.25em' }}>{label}</span>
-              <span className="font-raleway text-xs" style={{ color: 'var(--text-muted)' }}>{value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Currencies */}
-      <div className="card mb-4 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-        <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <div className="flex items-center gap-2">
-            <DollarSign size={13} style={{ color: 'var(--sand)' }} />
-            <span className="eyebrow" style={{ fontSize: '8px' }}>Supported Currencies</span>
-          </div>
-        </div>
-        <div className="p-4">
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(CURRENCIES).map(([code, { name, symbol }]) => (
-              <div key={code} className="flex items-center gap-2 px-3 py-2" style={{ border: '1px solid var(--border)' }}>
-                <span className="font-cinzel text-[10px]" style={{ color: 'var(--sand)', letterSpacing: '0.2em' }}>{code}</span>
-                <span className="font-raleway text-xs" style={{ color: 'var(--text-dim)' }}>{symbol} · {name}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {[
+              { label: 'Property Name', value: 'Coraléa Private Retreat' },
+              { label: 'Location', value: 'West Coast, Barbados' },
+              { label: 'Total Units', value: '24 (18 Suites + 5 Villas + 1 Grand Villa)' },
+              { label: 'ADR Range', value: '$950 – $2,500 USD' },
+              { label: 'Brand Positioning', value: 'Discreet luxury with Caribbean soul' },
+            ].map(({ label, value }) => (
+              <div key={label} className="form-group" style={{ marginBottom: 0 }}>
+                <label>{label}</label>
+                <input className="input" defaultValue={value} />
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Currency */}
+        <div className="card card-elevated">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+            <div className="card-icon"><Globe /></div>
+            <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)' }}>Currency & Locale</div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Base Currency</label>
+              <select className="select">
+                <option>USD — US Dollar</option>
+                <option>BBD — Barbados Dollar</option>
+                <option>GBP — British Pound</option>
+              </select>
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Date Format</label>
+              <select className="select">
+                <option>DD MMM YYYY (01 Jan 2026)</option>
+                <option>MM/DD/YYYY</option>
+                <option>YYYY-MM-DD</option>
+              </select>
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Timezone</label>
+              <select className="select">
+                <option>America/Barbados (AST, UTC-4)</option>
+                <option>UTC</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Privacy */}
+        <div className="card card-elevated">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+            <div className="card-icon"><Shield /></div>
+            <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)' }}>Privacy & Discretion</div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              'Mask guest names in printed reports',
+              'Require PIN to access investor portal',
+              'Log all discretion mode activations',
+              'Watermark exported documents',
+              'Auto-lock after 15 minutes inactivity',
+            ].map(label => (
+              <label key={label} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 12px', cursor: 'pointer',
+                background: 'var(--bg-overlay)', border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-sm)', fontSize: 13, color: 'var(--text-secondary)',
+                fontWeight: 400, letterSpacing: 0, textTransform: 'none',
+              }}>
+                <input type="checkbox" defaultChecked style={{ accentColor: 'var(--gold)', width: 14, height: 14 }} />
+                {label}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="card card-elevated">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+            <div className="card-icon"><Bell /></div>
+            <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)' }}>Notifications</div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              'Platinum guest arrival alerts',
+              'VIP birthday & anniversary reminders',
+              'Hurricane watch notifications',
+              'Vendor order status updates',
+              'Occupancy threshold alerts (>85%)',
+            ].map(label => (
+              <label key={label} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 12px', cursor: 'pointer',
+                background: 'var(--bg-overlay)', border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-sm)', fontSize: 13, color: 'var(--text-secondary)',
+                fontWeight: 400, letterSpacing: 0, textTransform: 'none',
+              }}>
+                <input type="checkbox" defaultChecked style={{ accentColor: 'var(--gold)', width: 14, height: 14 }} />
+                {label}
+              </label>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Database */}
-      <div className="card mb-4 animate-fade-up" style={{ animationDelay: '0.15s' }}>
-        <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <div className="flex items-center gap-2">
-            <Database size={13} style={{ color: 'var(--sand)' }} />
-            <span className="eyebrow" style={{ fontSize: '8px' }}>Database</span>
-          </div>
-        </div>
-        <div className="p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="font-raleway text-xs" style={{ color: 'var(--text-muted)' }}>Backend</span>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--success)', animation: 'pulse 2s infinite' }} />
-              <span className="font-cinzel text-[9px]" style={{ color: '#6abf8e', letterSpacing: '0.2em' }}>SUPABASE CONNECTED</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="font-raleway text-xs" style={{ color: 'var(--text-muted)' }}>Deployment</span>
-            <span className="font-cinzel text-[9px]" style={{ color: 'var(--text-dim)', letterSpacing: '0.2em' }}>VERCEL</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="font-raleway text-xs" style={{ color: 'var(--text-muted)' }}>RLS Policies</span>
-            <span className="font-cinzel text-[9px]" style={{ color: '#6abf8e', letterSpacing: '0.2em' }}>ENABLED</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Security */}
-      <div className="card mb-4 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-        <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <div className="flex items-center gap-2">
-            <Shield size={13} style={{ color: 'var(--sand)' }} />
-            <span className="eyebrow" style={{ fontSize: '8px' }}>Security & Privacy</span>
-          </div>
-        </div>
-        <div className="p-4 space-y-3">
-          {[
-            { label: 'Guest Data Encryption', status: 'ACTIVE' },
-            { label: 'VIP Discretion Mode', status: 'AVAILABLE' },
-            { label: 'Row Level Security', status: 'ENFORCED' },
-            { label: 'Audit Logging', status: 'ENABLED' },
-          ].map(({ label, status }) => (
-            <div key={label} className="flex items-center justify-between">
-              <span className="font-raleway text-xs" style={{ color: 'var(--text-muted)' }}>{label}</span>
-              <span className="font-cinzel text-[8px]" style={{ color: '#6abf8e', letterSpacing: '0.2em' }}>{status}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mb-8 p-4 text-center" style={{ border: '1px solid var(--border)' }}>
-        <div className="font-cinzel text-[9px] tracking-widest mb-1" style={{ color: 'var(--text-dim)', letterSpacing: '0.4em' }}>CORALÉA PRIVATE RETREAT</div>
-        <div className="font-cormorant italic text-sm" style={{ color: 'var(--text-dim)' }}>Hospitality Intelligence Platform v1.0</div>
-        <div className="font-raleway text-xs mt-1" style={{ color: 'var(--text-dim)', fontSize: '10px' }}>Built by Kromium Digital</div>
+      <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
+        <button className="btn btn-primary">Save Changes</button>
+        <button className="btn btn-ghost">Reset to Defaults</button>
       </div>
     </>
   )

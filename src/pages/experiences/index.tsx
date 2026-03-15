@@ -2,179 +2,174 @@ import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { formatCurrency } from '@/lib/currency'
 import { format, parseISO } from 'date-fns'
-import { Plus, Sparkles, ChevronRight } from 'lucide-react'
+import { Plus, ChevronRight } from 'lucide-react'
+import { formatCurrency } from '@/lib/currency'
+import { useDiscretionMode } from '@/components/layout/Sidebar'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
-import toast from 'react-hot-toast'
 
-const EXP_TYPES = ['all', 'yacht_charter', 'spa_treatment', 'dining', 'excursion', 'wellness', 'event', 'other']
-const COLORS = ['#c4a882', '#8a6e3e', '#b8965a', '#dfc9a8', '#6a8e7a', '#4a6a8e', '#8e4a4a']
+const TYPES = ['all', 'yacht_charter', 'spa_treatment', 'wellness', 'dining', 'excursion', 'event', 'other']
+const TYPE_COLORS: Record<string, string> = {
+  yacht_charter: '#c9a96e', spa_treatment: '#a78bfa', wellness: '#4ade80',
+  dining: '#fb923c', excursion: '#60a5fa', event: '#f472b6', other: '#94a3b8',
+}
 
 export default function Experiences() {
+  const { discretion } = useDiscretionMode()
   const [experiences, setExperiences] = useState<any[]>([])
+  const [filtered, setFiltered] = useState<any[]>([])
+  const [type, setType] = useState('all')
   const [loading, setLoading] = useState(true)
-  const [typeFilter, setTypeFilter] = useState('all')
-  const [pieData, setPieData] = useState<any[]>([])
 
-  useEffect(() => { load() }, [typeFilter])
+  useEffect(() => { load() }, [])
+  useEffect(() => {
+    setFiltered(type === 'all' ? experiences : experiences.filter(e => e.experience_type === type))
+  }, [experiences, type])
 
   async function load() {
-    setLoading(true)
-    let query = supabase.from('experiences')
-      .select('*, guests(first_name, last_name)')
+    const { data } = await supabase
+      .from('experiences')
+      .select('*, guests(first_name, last_name, vip_tier, discretion_level)')
       .order('date', { ascending: false })
-    if (typeFilter !== 'all') query = query.eq('experience_type', typeFilter)
-    const { data, error } = await query.limit(50)
-    if (error) toast.error('Failed to load')
-    else {
-      setExperiences(data || [])
-      // Build pie data from all experiences by type
-      const { data: allExp } = await supabase.from('experiences').select('experience_type, amount').eq('status', 'completed')
-      const grouped: Record<string, number> = {}
-      ;(allExp || []).forEach((e: any) => { grouped[e.experience_type] = (grouped[e.experience_type] || 0) + e.amount })
-      setPieData(Object.entries(grouped).map(([name, value]) => ({ name: name.replace(/_/g, ' '), value })))
-    }
+    setExperiences(data || [])
     setLoading(false)
   }
 
-  async function updateStatus(id: string, status: string) {
-    const { error } = await supabase.from('experiences').update({ status }).eq('id', id)
-    if (error) toast.error('Failed to update')
-    else { toast.success('Updated'); load() }
+  const gname = (e: any) => {
+    const g = e.guests
+    if (!g) return '—'
+    if (discretion && g.discretion_level === 'maximum') return '— Confidential —'
+    if (discretion && g.discretion_level === 'high') return `${g.first_name?.[0]}. ${g.last_name?.[0]}.`
+    return `${g.first_name} ${g.last_name}`
   }
 
-  const totalRevenue = experiences.filter(e => e.status === 'completed').reduce((s, e) => s + e.amount, 0)
-  const pendingRevenue = experiences.filter(e => e.status === 'pending').reduce((s, e) => s + e.amount, 0)
+  const totalRevenue = experiences.filter(e => e.status === 'completed').reduce((s, e) => s + (e.amount || 0), 0)
+  const byType = TYPES.slice(1).map(t => ({
+    name: t.replace('_', ' '),
+    value: experiences.filter(e => e.experience_type === t).length,
+    revenue: experiences.filter(e => e.experience_type === t && e.status === 'completed').reduce((s, e) => s + (e.amount || 0), 0),
+    color: TYPE_COLORS[t],
+  })).filter(t => t.value > 0)
 
   return (
     <>
-      <Head><title>Experiences · Coraléa CRM</title></Head>
+      <Head><title>Experiences — Coraléa CRM</title></Head>
 
-      <div className="mb-5 animate-fade-up">
-        <span className="eyebrow">Revenue</span>
-        <h1 className="module-title mt-1">
-          <span className="font-cormorant italic" style={{ color: 'var(--sand-light)' }}>Experiences</span>
-        </h1>
+      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <div className="page-eyebrow">Revenue</div>
+          <div className="page-title">Experiences</div>
+          <div className="page-subtitle">{experiences.length} experiences logged</div>
+        </div>
+        <Link href="/experiences/new" className="btn btn-primary">
+          <Plus size={13} /> Log Experience
+        </Link>
       </div>
 
-      {/* Revenue cards */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="card p-4">
-          <div className="eyebrow mb-2" style={{ fontSize: '8px' }}>Earned</div>
-          <div className="stat-number">{formatCurrency(totalRevenue)}</div>
-          <div className="font-raleway text-xs mt-1" style={{ color: 'var(--text-dim)' }}>Completed</div>
+      <div className="dashboard-grid" style={{ marginBottom: 24 }}>
+        <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', marginBottom: 0 }}>
+          <div className="card card-elevated">
+            <div className="card-label">Total Experiences</div>
+            <div className="card-value">{experiences.length}</div>
+            <div className="card-sub">{experiences.filter(e => e.status === 'completed').length} completed</div>
+          </div>
+          <div className="card card-elevated">
+            <div className="card-label">Experience Revenue</div>
+            <div className="card-value">{formatCurrency(totalRevenue, 'USD')}</div>
+            <div className="card-sub">Completed experiences</div>
+          </div>
+          <div className="card card-elevated">
+            <div className="card-label">Pending</div>
+            <div className="card-value" style={{ color: '#fbbf24' }}>{experiences.filter(e => e.status === 'pending').length}</div>
+            <div className="card-sub">To confirm</div>
+          </div>
+          <div className="card card-elevated">
+            <div className="card-label">Confirmed</div>
+            <div className="card-value" style={{ color: 'var(--status-conf)' }}>{experiences.filter(e => e.status === 'confirmed').length}</div>
+            <div className="card-sub">Upcoming</div>
+          </div>
         </div>
-        <div className="card p-4">
-          <div className="eyebrow mb-2" style={{ fontSize: '8px', color: '#e0b05a' }}>Pending</div>
-          <div className="stat-number" style={{ color: '#e0b05a' }}>{formatCurrency(pendingRevenue)}</div>
-          <div className="font-raleway text-xs mt-1" style={{ color: 'var(--text-dim)' }}>To confirm</div>
-        </div>
-      </div>
 
-      {/* Pie chart */}
-      {pieData.length > 0 && (
-        <div className="card p-4 mb-4 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <span className="eyebrow mb-3 block" style={{ fontSize: '8px' }}>Revenue by Type</span>
-          <div className="flex items-center gap-4">
-            <ResponsiveContainer width={120} height={120}>
+        {/* Pie chart */}
+        <div className="card card-elevated">
+          <div className="card-label" style={{ marginBottom: 12 }}>By Type</div>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <ResponsiveContainer width={130} height={130}>
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={35} outerRadius={55} dataKey="value" strokeWidth={0}>
-                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                <Pie data={byType} cx="50%" cy="50%" innerRadius={35} outerRadius={60} dataKey="value" strokeWidth={0}>
+                  {byType.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip contentStyle={{ background: 'var(--obsidian)', border: '1px solid rgba(196,168,130,0.2)', borderRadius: 0, fontFamily: 'Cinzel', fontSize: 10 }} formatter={(v: any) => formatCurrency(v)} />
+                <Tooltip contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-mid)', borderRadius: 8, fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>
-            <div className="flex-1 space-y-2">
-              {pieData.map((d, i) => (
-                <div key={d.name} className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                  <span className="font-raleway text-xs capitalize" style={{ color: 'var(--text-muted)', flex: 1 }}>{d.name}</span>
-                  <span className="font-cormorant italic text-xs" style={{ color: 'var(--sand)' }}>{formatCurrency(d.value)}</span>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {byType.map(t => (
+                <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: t.color, flexShrink: 0 }} />
+                  <span style={{ flex: 1, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{t.name}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>{t.value}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-        {EXP_TYPES.map(t => (
-          <button key={t} onClick={() => setTypeFilter(t)}
-            className="flex-shrink-0 font-cinzel text-[8px] px-3 py-1.5 transition-all capitalize"
-            style={{
-              letterSpacing: '0.25em', border: '1px solid',
-              borderColor: typeFilter === t ? 'var(--sand)' : 'var(--border)',
-              color: typeFilter === t ? 'var(--sand)' : 'var(--text-dim)',
-              background: typeFilter === t ? 'rgba(196,168,130,0.08)' : 'transparent',
-            }}>
-            {t.replace(/_/g, ' ')}
+      {/* Type filter */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+        {TYPES.map(t => (
+          <button key={t} onClick={() => setType(t)} className={`btn btn-sm ${type === t ? 'btn-primary' : 'btn-ghost'}`} style={{ textTransform: 'capitalize' }}>
+            {t === 'all' ? 'All' : t.replace('_', ' ')}
           </button>
         ))}
       </div>
 
-      <div className="flex justify-end mb-3">
-        <Link href="/experiences/new" className="btn-primary"><Plus size={14} /> Add Experience</Link>
-      </div>
-
-      <div className="card">
+      <div className="card card-elevated">
         {loading ? (
-          <div className="p-4 space-y-3">{[1,2,3].map(i => <div key={i} className="skeleton h-16 rounded" />)}</div>
-        ) : experiences.length === 0 ? (
-          <div className="p-8 text-center">
-            <div className="font-cormorant italic text-xl" style={{ color: 'var(--text-dim)' }}>No experiences found</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {Array.from({ length: 8 }).map((_, i) => <div key={i} className="skeleton" style={{ height: 52 }} />)}
           </div>
         ) : (
-          experiences.map((exp, i) => (
-            <div key={exp.id} className="p-4 transition-all"
-              style={{ borderBottom: i < experiences.length - 1 ? '1px solid rgba(196,168,130,0.06)' : 'none' }}>
-              <div className="flex items-start gap-3">
-                <Sparkles size={13} style={{ color: 'var(--sand)', flexShrink: 0, marginTop: 3 }} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                    <span className="font-cormorant text-sm" style={{ color: 'var(--text-primary)' }}>{exp.name}</span>
-                    <StatusBadge status={exp.status} />
-                  </div>
-                  <div className="font-raleway text-xs" style={{ color: 'var(--text-dim)' }}>
-                    {exp.guests ? (
-                      <Link href={`/guests/${exp.guest_id}`} style={{ color: 'var(--sand)', opacity: 0.7 }}>
-                        {exp.guests.first_name} {exp.guests.last_name}
-                      </Link>
-                    ) : 'Unknown guest'} · {format(parseISO(exp.date), 'MMM d, yyyy')}
-                  </div>
-                  {exp.vendor && (
-                    <div className="font-cinzel text-[8px] mt-0.5" style={{ color: 'var(--text-dim)', letterSpacing: '0.2em' }}>{exp.vendor}</div>
-                  )}
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <div className="font-cormorant italic text-sm" style={{ color: 'var(--sand)' }}>
-                    {formatCurrency(exp.amount, exp.currency)}
-                  </div>
-                </div>
-              </div>
-              {exp.status === 'pending' && (
-                <div className="flex gap-2 mt-3 ml-7">
-                  <button onClick={() => updateStatus(exp.id, 'confirmed')} className="btn-ghost" style={{ fontSize: '8px', padding: '4px 12px' }}>Confirm</button>
-                  <button onClick={() => updateStatus(exp.id, 'cancelled')} className="btn-danger" style={{ fontSize: '8px', padding: '4px 12px' }}>Cancel</button>
-                </div>
-              )}
-              {exp.status === 'confirmed' && (
-                <button onClick={() => updateStatus(exp.id, 'completed')} className="btn-ghost ml-7 mt-3" style={{ fontSize: '8px', padding: '4px 12px' }}>
-                  Mark Complete
-                </button>
-              )}
-            </div>
-          ))
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Experience</th>
+                  <th>Guest</th>
+                  <th>Type</th>
+                  <th>Date</th>
+                  <th>Duration</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Vendor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(e => (
+                  <tr key={e.id}>
+                    <td style={{ fontWeight: 500, fontSize: 13, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.name}</td>
+                    <td>
+                      <div style={{ fontSize: 13 }}>{gname(e)}</div>
+                      {e.guests?.vip_tier && <span className={`badge badge-${e.guests.vip_tier}`} style={{ fontSize: 9 }}>{e.guests.vip_tier}</span>}
+                    </td>
+                    <td>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--text-secondary)' }}>
+                        <span style={{ width: 7, height: 7, borderRadius: 2, background: TYPE_COLORS[e.experience_type] || '#94a3b8' }} />
+                        {e.experience_type?.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{format(parseISO(e.date), 'dd MMM yyyy')}</td>
+                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{e.duration_hours ? `${e.duration_hours}h` : '—'}</td>
+                    <td style={{ color: 'var(--gold)', fontSize: 13 }}>{e.amount ? formatCurrency(e.amount, e.currency || 'USD') : '—'}</td>
+                    <td><span className={`badge badge-${e.status}`}>{e.status}</span></td>
+                    <td style={{ fontSize: 11, color: 'var(--text-muted)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.vendor || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </>
   )
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    confirmed: 'badge-success', completed: 'badge-info',
-    pending: 'badge-warning', cancelled: 'badge-danger',
-  }
-  return <span className={`badge ${map[status] || 'badge-sand'}`}>{status}</span>
 }

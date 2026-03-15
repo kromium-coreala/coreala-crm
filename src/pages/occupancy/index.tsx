@@ -2,325 +2,175 @@ import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { formatCurrency } from '@/lib/currency'
-import { format, parseISO, differenceInDays } from 'date-fns'
-import { BedDouble, TrendingUp, Users, Calendar, RefreshCw, Plus } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { format, parseISO } from 'date-fns'
+import { BedDouble, Users, ArrowRight, Plus } from 'lucide-react'
+import { useDiscretionMode } from '@/components/layout/Sidebar'
 
-const SUITES = [
-  ...Array.from({ length: 18 }, (_, i) => ({
-    id: `S${String(i + 1).padStart(2, '0')}`,
-    label: `Suite ${String(i + 1).padStart(2, '0')}`,
-    type: 'private_suite' as const,
-    floor: Math.ceil((i + 1) / 6),
-  })),
-  ...Array.from({ length: 6 }, (_, i) => ({
-    id: `V${String(i + 1).padStart(2, '0')}`,
-    label: `Villa ${String(i + 1).padStart(2, '0')}`,
-    type: i === 5 ? 'grand_villa' as const : 'oceanfront_villa' as const,
-    floor: 0,
-  })),
-]
-
-const RATES: Record<string, number> = {
-  private_suite: 950,
-  oceanfront_villa: 1600,
-  grand_villa: 2500,
-}
-
-type OccStatus = 'vacant' | 'occupied' | 'arriving' | 'departing' | 'maintenance'
-
-interface RoomStatus {
-  unitId: string
-  status: OccStatus
-  reservation?: any
-  guest?: any
-  checkIn?: string
-  checkOut?: string
-  nights?: number
-}
+const SUITES = Array.from({ length: 18 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`)
+const VILLAS = ['V01', 'V02', 'V03', 'V04', 'V05', 'V06']
+const GRAND = 'V06'
 
 export default function Occupancy() {
-  const [rooms, setRooms] = useState<Record<string, RoomStatus>>({})
+  const { discretion } = useDiscretionMode()
   const [reservations, setReservations] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [lastRefresh, setLastRefresh] = useState(new Date())
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   useEffect(() => { load() }, [])
 
   async function load() {
-    setLoading(true)
-    const today = format(new Date(), 'yyyy-MM-dd')
-
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('reservations')
       .select('*, guests(first_name, last_name, vip_tier, nationality, discretion_level)')
-      .in('status', ['confirmed', 'checked_in'])
-      .lte('check_in', today)
-      .gte('check_out', today)
-
-    if (error) { toast.error('Failed to load occupancy'); setLoading(false); return }
-
-    const { data: arrivingData } = await supabase
-      .from('reservations')
-      .select('*, guests(first_name, last_name, vip_tier)')
-      .eq('check_in', today)
-      .eq('status', 'confirmed')
-
-    const { data: departingData } = await supabase
-      .from('reservations')
-      .select('*, guests(first_name, last_name, vip_tier)')
-      .eq('check_out', today)
-      .eq('status', 'checked_in')
-
-    // Build room map from reservations (room_number field)
-    const roomMap: Record<string, RoomStatus> = {}
-    SUITES.forEach(s => { roomMap[s.id] = { unitId: s.id, status: 'vacant' } })
-
-    ;(data || []).forEach(res => {
-      const roomNum = res.room_number
-      if (roomNum && roomMap[roomNum]) {
-        const isArriving = (arrivingData || []).some(a => a.id === res.id)
-        const isDeparting = (departingData || []).some(d => d.id === res.id)
-        const nights = res.check_in && res.check_out
-          ? differenceInDays(parseISO(res.check_out), parseISO(res.check_in)) : 0
-        roomMap[roomNum] = {
-          unitId: roomNum,
-          status: isArriving ? 'arriving' : isDeparting ? 'departing' : 'occupied',
-          reservation: res,
-          guest: res.guests,
-          checkIn: res.check_in,
-          checkOut: res.check_out,
-          nights,
-        }
-      }
-    })
-
-    setRooms(roomMap)
+      .in('status', ['checked_in', 'confirmed'])
+      .order('check_in', { ascending: true })
     setReservations(data || [])
-    setLastRefresh(new Date())
     setLoading(false)
   }
 
-  const statusColor: Record<OccStatus, string> = {
-    vacant: 'rgba(196,168,130,0.06)',
-    occupied: 'rgba(156,58,58,0.18)',
-    arriving: 'rgba(74,140,106,0.25)',
-    departing: 'rgba(196,149,58,0.25)',
-    maintenance: 'rgba(58,106,156,0.2)',
-  }
-  const statusBorder: Record<OccStatus, string> = {
-    vacant: 'rgba(196,168,130,0.12)',
-    occupied: 'rgba(156,58,58,0.4)',
-    arriving: 'rgba(74,140,106,0.5)',
-    departing: 'rgba(196,149,58,0.5)',
-    maintenance: 'rgba(58,106,156,0.4)',
-  }
-  const statusLabel: Record<OccStatus, string> = {
-    vacant: 'VACANT',
-    occupied: 'OCCUPIED',
-    arriving: 'ARRIVING',
-    departing: 'DEPARTING',
-    maintenance: 'MAINTENANCE',
+  const getUnit = (room: string) =>
+    reservations.find(r => r.room_number === room)
+
+  const checkedIn = reservations.filter(r => r.status === 'checked_in').length
+  const confirmed = reservations.filter(r => r.status === 'confirmed').length
+  const occupancyPct = Math.round((checkedIn / 24) * 100)
+
+  const guestName = (g: any) => {
+    if (!g) return '—'
+    if (discretion && g.discretion_level === 'maximum') return '— Confidential —'
+    if (discretion && g.discretion_level === 'high') return `${g.first_name?.[0]}.${g.last_name?.[0]}.`
+    return `${g.first_name} ${g.last_name}`
   }
 
-  const occupied = Object.values(rooms).filter(r => r.status === 'occupied' || r.status === 'departing').length
-  const arriving = Object.values(rooms).filter(r => r.status === 'arriving').length
-  const departing = Object.values(rooms).filter(r => r.status === 'departing').length
-  const vacant = Object.values(rooms).filter(r => r.status === 'vacant').length
-  const occupancyRate = Math.round((occupied / 24) * 100)
-  const todayRevenue = reservations.reduce((sum, r) => sum + (r.nightly_rate || 0), 0)
+  const UnitCard = ({ room, type }: { room: string; type: string }) => {
+    const res = getUnit(room)
+    const isIn = res?.status === 'checked_in'
+    const isConf = res?.status === 'confirmed'
+    const isGrand = room === GRAND
 
-  const suites = SUITES.filter(s => s.type === 'private_suite')
-  const villas = SUITES.filter(s => s.type !== 'private_suite')
+    return (
+      <div style={{
+        background: isIn ? 'rgba(74,222,128,0.06)' : isConf ? 'rgba(96,165,250,0.06)' : 'var(--bg-surface)',
+        border: `1px solid ${isIn ? 'rgba(74,222,128,0.25)' : isConf ? 'rgba(96,165,250,0.2)' : 'var(--border-subtle)'}`,
+        borderRadius: 'var(--radius-md)',
+        padding: '14px 16px',
+        transition: 'all 150ms',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.14em', color: 'var(--gold)', marginBottom: 2 }}>
+              {room}
+            </div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              {isGrand ? 'Grand Villa' : type}
+            </div>
+          </div>
+          <span className={`badge badge-${res ? res.status : 'standard'}`} style={{ fontSize: 9 }}>
+            {res ? res.status.replace('_', ' ') : 'Vacant'}
+          </span>
+        </div>
+
+        {res ? (
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>
+              {guestName(res.guests)}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              {res.guests?.vip_tier && <span className={`badge badge-${res.guests.vip_tier}`} style={{ fontSize: 9, marginRight: 6 }}>{res.guests.vip_tier}</span>}
+              {format(parseISO(res.check_in), 'dd MMM')} → {format(parseISO(res.check_out), 'dd MMM')}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+              {res.adults} adult{res.adults !== 1 ? 's' : ''}{res.children > 0 ? ` · ${res.children} child` : ''}
+              {' · '}{res.currency} {Number(res.nightly_rate).toLocaleString()}/night
+            </div>
+          </div>
+        ) : (
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>Available</div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <>
-      <Head><title>Occupancy · Coraléa CRM</title></Head>
+      <Head><title>Occupancy — Coraléa CRM</title></Head>
 
-      <div className="flex items-start justify-between mb-5 animate-fade-up">
-        <div>
-          <span className="eyebrow">Live</span>
-          <h1 className="module-title mt-1">
-            Occupancy <span className="font-cormorant italic" style={{ color: 'var(--sand-light)' }}>Map</span>
-          </h1>
-          <div className="font-raleway text-xs mt-1" style={{ color: 'var(--text-dim)' }}>
-            {format(new Date(), 'EEEE, MMMM d')} · Updated {format(lastRefresh, 'HH:mm')}
-          </div>
-        </div>
-        <button onClick={load} disabled={loading}
-          className="p-2 transition-all" style={{ border: '1px solid var(--border)', color: 'var(--text-dim)' }}>
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-        </button>
+      <div className="page-header">
+        <div className="page-eyebrow">Live Map</div>
+        <div className="page-title">Occupancy <em>Overview</em></div>
+        <div className="page-subtitle">{format(new Date(), 'EEEE, MMMM d, yyyy')}</div>
       </div>
 
-      {/* KPI strip */}
-      <div className="grid grid-cols-4 gap-2 mb-4 animate-fade-up">
-        {[
-          { label: 'Occupancy', value: `${occupancyRate}%`, color: 'var(--sand)' },
-          { label: 'Arriving', value: arriving, color: '#6abf8e' },
-          { label: 'Departing', value: departing, color: '#e0b05a' },
-          { label: 'Vacant', value: vacant, color: 'var(--text-dim)' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="card p-3 text-center">
-            <div className="font-cormorant italic text-xl" style={{ color }}>{value}</div>
-            <div className="eyebrow mt-1" style={{ fontSize: '7px' }}>{label}</div>
+      {/* KPIs */}
+      <div className="stat-grid" style={{ marginBottom: 28 }}>
+        <div className="card card-elevated">
+          <div className="card-label">Occupancy Rate</div>
+          <div className="card-value">{occupancyPct}%</div>
+          <div className="progress-bar" style={{ margin: '10px 0 6px' }}>
+            <div className="progress-fill" style={{ width: `${occupancyPct}%` }} />
           </div>
-        ))}
+          <div className="card-sub">{checkedIn} of 24 units</div>
+        </div>
+        <div className="card card-elevated">
+          <div className="card-label">Checked In</div>
+          <div className="card-value" style={{ color: 'var(--status-in)' }}>{checkedIn}</div>
+          <div className="card-sub">Currently in-house</div>
+        </div>
+        <div className="card card-elevated">
+          <div className="card-label">Confirmed</div>
+          <div className="card-value" style={{ color: 'var(--status-conf)' }}>{confirmed}</div>
+          <div className="card-sub">Upcoming arrivals</div>
+        </div>
+        <div className="card card-elevated">
+          <div className="card-label">Available</div>
+          <div className="card-value">{24 - checkedIn - confirmed}</div>
+          <div className="card-sub">Units open to book</div>
+        </div>
       </div>
 
-      {/* Occupancy bar */}
-      <div className="card p-4 mb-4 animate-fade-up">
-        <div className="flex items-center justify-between mb-2">
-          <span className="eyebrow" style={{ fontSize: '8px' }}>Property Utilisation · 24 Units</span>
-          <span className="font-cormorant italic" style={{ color: 'var(--sand)' }}>{formatCurrency(todayRevenue)} / night</span>
-        </div>
-        <div className="flex h-3 gap-0.5 rounded-sm overflow-hidden" style={{ background: 'var(--surface-3)' }}>
-          {['occupied','arriving','departing','vacant'].map(s => {
-            const count = Object.values(rooms).filter(r => r.status === s).length
-            const pct = (count / 24) * 100
-            if (pct === 0) return null
-            return (
-              <div key={s} style={{ width: `${pct}%`, background: s === 'occupied' ? '#9c3a3a' : s === 'arriving' ? '#4a8c6a' : s === 'departing' ? '#c4953a' : 'var(--surface-3)', transition: 'width 0.5s ease' }} />
-            )
-          })}
-        </div>
-        <div className="flex gap-4 mt-2">
-          {[
-            { label: 'Occupied', color: '#9c3a3a' },
-            { label: 'Arriving', color: '#4a8c6a' },
-            { label: 'Departing', color: '#c4953a' },
-            { label: 'Vacant', color: 'var(--surface-3)' },
-          ].map(({ label, color }) => (
-            <div key={label} className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-sm" style={{ background: color }} />
-              <span className="font-cinzel text-[7px]" style={{ color: 'var(--text-dim)', letterSpacing: '0.2em' }}>{label}</span>
-            </div>
+      {loading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+          {Array.from({ length: 24 }).map((_, i) => (
+            <div key={i} className="skeleton" style={{ height: 110 }} />
           ))}
         </div>
-      </div>
-
-      {/* Villas */}
-      <div className="mb-4 animate-fade-up">
-        <div className="flex items-center justify-between mb-3">
-          <span className="eyebrow" style={{ fontSize: '8px' }}>Villas</span>
-          <Link href="/reservations/new" className="font-cinzel text-[8px] flex items-center gap-1" style={{ color: 'var(--sand)', letterSpacing: '0.2em' }}>
-            <Plus size={11} /> ASSIGN
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {villas.map(unit => {
-            const room = rooms[unit.id] || { unitId: unit.id, status: 'vacant' as OccStatus }
-            return (
-              <RoomCard key={unit.id} unit={unit} room={room}
-                statusColor={statusColor} statusBorder={statusBorder} statusLabel={statusLabel} />
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Suites by floor */}
-      {[1, 2, 3].map(floor => {
-        const floorSuites = suites.filter(s => s.floor === floor)
-        return (
-          <div key={floor} className="mb-4 animate-fade-up">
-            <span className="eyebrow mb-3 block" style={{ fontSize: '8px' }}>Floor {floor} · Suites {(floor - 1) * 6 + 1}–{floor * 6}</span>
-            <div className="grid grid-cols-3 gap-2">
-              {floorSuites.map(unit => {
-                const room = rooms[unit.id] || { unitId: unit.id, status: 'vacant' as OccStatus }
-                return (
-                  <RoomCard key={unit.id} unit={unit} room={room} compact
-                    statusColor={statusColor} statusBorder={statusBorder} statusLabel={statusLabel} />
-                )
-              })}
-            </div>
-          </div>
-        )
-      })}
-
-      {/* Today's movement */}
-      {(arriving > 0 || departing > 0) && (
-        <div className="card mb-4 animate-fade-up">
-          <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <span className="eyebrow" style={{ fontSize: '8px' }}>Today's Movement</span>
-          </div>
-          {Object.values(rooms).filter(r => r.status === 'arriving' || r.status === 'departing').map(room => (
-            <Link href={room.reservation ? `/reservations/${room.reservation.id}` : '#'}
-              key={room.unitId} className="flex items-center gap-3 p-4 transition-all"
-              style={{ borderBottom: '1px solid rgba(196,168,130,0.05)' }}>
-              <div className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ background: room.status === 'arriving' ? '#4a8c6a' : '#c4953a' }} />
-              <div className="flex-1">
-                <div className="font-cormorant text-sm" style={{ color: 'var(--text-primary)' }}>
-                  {room.guest?.discretion_level === 'maximum' ? '— Confidential Guest —' : `${room.guest?.first_name} ${room.guest?.last_name}`}
-                </div>
-                <div className="font-raleway text-xs" style={{ color: 'var(--text-dim)' }}>
-                  {room.status === 'arriving' ? '↑ Arrival' : '↓ Departure'} · {room.unitId} · {room.nights} nights
-                </div>
+      ) : (
+        <>
+          {/* Suites */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div>
+                <div className="page-eyebrow" style={{ marginBottom: 2 }}>Accommodation</div>
+                <h2 style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, fontWeight: 300, color: 'var(--text-primary)' }}>
+                  Private Suites <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>S01 – S18</span>
+                </h2>
               </div>
-              <VIPBadge tier={room.guest?.vip_tier} />
-            </Link>
-          ))}
-        </div>
-      )}
+              <Link href="/reservations/new" className="btn btn-primary btn-sm">
+                <Plus size={12} /> New Booking
+              </Link>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
+              {SUITES.map(room => (
+                <UnitCard key={room} room={room} type="Private Suite" />
+              ))}
+            </div>
+          </div>
 
-      <div className="flex gap-3 mb-8">
-        <Link href="/reservations/new" className="btn-primary flex-1 justify-center">
-          <Plus size={14} /> New Reservation
-        </Link>
-        <Link href="/reservations" className="btn-ghost flex-1 text-center">All Bookings</Link>
-      </div>
+          {/* Villas */}
+          <div>
+            <div style={{ marginBottom: 14 }}>
+              <div className="page-eyebrow" style={{ marginBottom: 2 }}>Oceanfront</div>
+              <h2 style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, fontWeight: 300, color: 'var(--text-primary)' }}>
+                Villas <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>V01 – V06</span>
+              </h2>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
+              {VILLAS.map(room => (
+                <UnitCard key={room} room={room} type="Oceanfront Villa" />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </>
   )
-}
-
-function RoomCard({ unit, room, compact, statusColor, statusBorder, statusLabel }: any) {
-  const content = (
-    <div className="p-3 transition-all cursor-default"
-      style={{
-        background: statusColor[room.status],
-        border: `1px solid ${statusBorder[room.status]}`,
-        minHeight: compact ? 80 : 110,
-      }}>
-      <div className="flex items-start justify-between mb-1">
-        <span className="font-cinzel text-[9px]" style={{ color: 'var(--sand)', letterSpacing: '0.2em' }}>{unit.id}</span>
-        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-0.5"
-          style={{ background: room.status === 'vacant' ? 'var(--text-dim)' : room.status === 'occupied' ? '#e07070' : room.status === 'arriving' ? '#6abf8e' : '#e0b05a' }} />
-      </div>
-      {!compact && (
-        <div className="font-cinzel text-[7px] mb-2" style={{ color: 'var(--text-dim)', letterSpacing: '0.15em' }}>
-          {unit.type.replace(/_/g, ' ').toUpperCase()}
-        </div>
-      )}
-      {room.status !== 'vacant' && room.guest ? (
-        <>
-          <div className="font-cormorant text-xs leading-tight" style={{ color: 'var(--text-primary)' }}>
-            {room.guest.discretion_level === 'maximum' ? '— Confidential —' : `${room.guest.first_name} ${room.guest.last_name[0]}.`}
-          </div>
-          {!compact && room.checkOut && (
-            <div className="font-raleway mt-1" style={{ fontSize: '10px', color: 'var(--text-dim)' }}>
-              Out: {format(parseISO(room.checkOut), 'MMM d')}
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="font-cinzel text-[7px] mt-1" style={{ color: 'var(--text-dim)', letterSpacing: '0.2em' }}>
-          {statusLabel[room.status]}
-        </div>
-      )}
-    </div>
-  )
-
-  if (room.reservation) {
-    return <Link href={`/reservations/${room.reservation.id}`}>{content}</Link>
-  }
-  return content
-}
-
-function VIPBadge({ tier }: { tier?: string }) {
-  const map: Record<string, string> = {
-    standard: 'badge badge-sand', silver: 'badge', gold: 'badge badge-warning', platinum: 'badge badge-platinum'
-  }
-  return <span className={map[tier || 'standard'] || 'badge badge-sand'}>{tier?.slice(0, 4).toUpperCase() || 'STD'}</span>
 }

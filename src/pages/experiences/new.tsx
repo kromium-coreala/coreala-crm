@@ -1,146 +1,61 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabase'
-import { CURRENCIES } from '@/lib/currency'
-import { ArrowLeft, Save } from 'lucide-react'
+import { CURRENCIES, CurrencyCode } from '@/lib/currency'
+import { ArrowLeft, Save, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function NewExperience() {
   const router = useRouter()
-  const { reservation_id, guest_id } = router.query
-  const [saving, setSaving] = useState(false)
   const [guests, setGuests] = useState<any[]>([])
-
-  const [form, setForm] = useState({
-    guest_id: (guest_id as string) || '',
-    reservation_id: (reservation_id as string) || '',
-    experience_type: 'yacht_charter',
-    name: '',
-    date: new Date().toISOString().split('T')[0],
-    duration_hours: '',
-    amount: '',
-    currency: 'USD',
-    status: 'pending',
-    notes: '',
-    vendor: '',
-  })
-
-  useEffect(() => {
-    if (guest_id) setForm(f => ({ ...f, guest_id: guest_id as string }))
-    if (reservation_id) setForm(f => ({ ...f, reservation_id: reservation_id as string }))
-    loadGuests()
-  }, [guest_id, reservation_id])
-
-  async function loadGuests() {
-    const { data } = await supabase.from('guests').select('id, first_name, last_name').order('first_name')
-    setGuests(data || [])
-  }
-
-  function set(k: string, v: any) { setForm(p => ({ ...p, [k]: v })) }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!form.guest_id || !form.name || !form.amount) { toast.error('Please fill required fields'); return }
+  const [gs, setGs] = useState('')
+  const [form, setForm] = useState({ guest_id:'', experience_type:'spa_treatment', name:'', date:'', duration_hours:'', amount:'', currency:'USD' as CurrencyCode, status:'pending', vendor:'', notes:'' })
+  const [saving, setSaving] = useState(false)
+  useEffect(()=>{ supabase.from('guests').select('id,first_name,last_name,vip_tier').order('last_name').then(({data})=>setGuests(data||[])) },[])
+  const filtered = guests.filter(g=>`${g.first_name} ${g.last_name}`.toLowerCase().includes(gs.toLowerCase())).slice(0,8)
+  const f = (k:string) => (v:any) => setForm(p=>({...p,[k]:v.target?.value??v}))
+  async function save() {
+    if (!form.guest_id||!form.name||!form.date||!form.amount) return toast.error('Guest, name, date and amount required')
     setSaving(true)
-    try {
-      const { error } = await supabase.from('experiences').insert({
-        ...form,
-        amount: parseFloat(form.amount),
-        duration_hours: form.duration_hours ? parseFloat(form.duration_hours) : null,
-      })
-      if (error) throw error
-      toast.success('Experience added')
-      router.push('/experiences')
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to save')
-    } finally {
-      setSaving(false)
-    }
+    const {error} = await supabase.from('experiences').insert({...form,amount:Number(form.amount),duration_hours:form.duration_hours?Number(form.duration_hours):null})
+    if (error) { toast.error(error.message); setSaving(false) }
+    else { toast.success('Experience logged'); router.push('/experiences') }
   }
-
-  const Field = ({ label, children }: any) => (
-    <div><label className="label-luxury">{label}</label>{children}</div>
-  )
-
   return (
     <>
-      <Head><title>New Experience · Coraléa CRM</title></Head>
-
-      <Link href="/experiences" className="flex items-center gap-2 mb-4" style={{ color: 'var(--text-dim)' }}>
-        <ArrowLeft size={14} />
-        <span className="font-cinzel text-[9px] tracking-widest" style={{ letterSpacing: '0.3em' }}>EXPERIENCES</span>
-      </Link>
-
-      <div className="mb-5">
-        <span className="eyebrow">Revenue</span>
-        <h1 className="module-title mt-1">Add <span className="font-cormorant italic" style={{ color: 'var(--sand-light)' }}>Experience</span></h1>
+      <Head><title>Log Experience — Coraléa CRM</title></Head>
+      <div style={{marginBottom:24}}>
+        <Link href="/experiences" className="btn btn-ghost btn-sm" style={{marginBottom:16}}><ArrowLeft size={13}/>Back</Link>
+        <div className="page-header" style={{marginBottom:0,display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+          <div><div className="page-eyebrow">Revenue</div><div className="page-title">Log <em>Experience</em></div></div>
+          <button className="btn btn-primary" onClick={save} disabled={saving}><Save size={13}/>{saving?'Saving…':'Log Experience'}</button>
+        </div>
       </div>
-
-      <form onSubmit={handleSubmit}>
-        <div className="card mb-4">
-          <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <span className="eyebrow" style={{ fontSize: '8px' }}>Experience Details</span>
-          </div>
-          <div className="p-4 space-y-4">
-            <Field label="Guest *">
-              <select className="input-box" value={form.guest_id} onChange={e => set('guest_id', e.target.value)} required>
-                <option value="">Select guest</option>
-                {guests.map(g => <option key={g.id} value={g.id}>{g.first_name} {g.last_name}</option>)}
-              </select>
-            </Field>
-            <Field label="Experience Type">
-              <select className="input-box" value={form.experience_type} onChange={e => set('experience_type', e.target.value)}>
-                {['yacht_charter','spa_treatment','dining','excursion','wellness','event','other'].map(t => (
-                  <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Name / Description *">
-              <input className="input-box" value={form.name} onChange={e => set('name', e.target.value)} required placeholder="e.g. Sunset Yacht Charter, 3-hour" />
-            </Field>
-            <Field label="Vendor / Partner">
-              <input className="input-box" value={form.vendor} onChange={e => set('vendor', e.target.value)} placeholder="e.g. Blue Horizon Yachts" />
-            </Field>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Date">
-                <input type="date" className="input-box" value={form.date} onChange={e => set('date', e.target.value)} required />
-              </Field>
-              <Field label="Duration (hrs)">
-                <input type="number" step="0.5" className="input-box" value={form.duration_hours} onChange={e => set('duration_hours', e.target.value)} />
-              </Field>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Amount *">
-                <input type="number" className="input-box" value={form.amount} onChange={e => set('amount', e.target.value)} required />
-              </Field>
-              <Field label="Currency">
-                <select className="input-box" value={form.currency} onChange={e => set('currency', e.target.value)}>
-                  {Object.keys(CURRENCIES).map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </Field>
-            </div>
-            <Field label="Status">
-              <select className="input-box" value={form.status} onChange={e => set('status', e.target.value)}>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="completed">Completed</option>
-              </select>
-            </Field>
-            <Field label="Notes">
-              <textarea className="input-box" rows={3} value={form.notes} onChange={e => set('notes', e.target.value)} />
-            </Field>
+      <div className="grid-2">
+        <div className="card card-elevated">
+          <div style={{fontFamily:'var(--font-editorial)',fontSize:18,marginBottom:16}}>Select Guest</div>
+          <div style={{position:'relative',marginBottom:8}}><Search size={14} style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'var(--text-muted)'}}/><input className="input" style={{paddingLeft:36}} placeholder="Search guest…" value={gs} onChange={e=>setGs(e.target.value)}/></div>
+          <div style={{display:'flex',flexDirection:'column',gap:4,maxHeight:200,overflowY:'auto'}}>
+            {filtered.map(g=>(
+              <div key={g.id} onClick={()=>{setForm(p=>({...p,guest_id:g.id}));setGs(`${g.first_name} ${g.last_name}`)}} style={{padding:'8px 12px',background:form.guest_id===g.id?'var(--gold-glow)':'var(--bg-overlay)',border:`1px solid ${form.guest_id===g.id?'var(--gold)':'var(--border-subtle)'}`,borderRadius:'var(--radius-sm)',cursor:'pointer',display:'flex',justifyContent:'space-between',fontSize:13,transition:'all 150ms'}}>
+                <span>{g.first_name} {g.last_name}</span>
+                <span className={`badge badge-${g.vip_tier}`} style={{fontSize:9}}>{g.vip_tier}</span>
+              </div>
+            ))}
           </div>
         </div>
-
-        <div className="flex gap-3 mb-8">
-          <button type="submit" className="btn-primary flex-1 justify-center" disabled={saving}>
-            <Save size={14} /> {saving ? 'Saving...' : 'Add Experience'}
-          </button>
-          <Link href="/experiences" className="btn-ghost text-center" style={{ flex: 1 }}>Cancel</Link>
+        <div className="card card-elevated">
+          <div style={{fontFamily:'var(--font-editorial)',fontSize:18,marginBottom:16}}>Experience Details</div>
+          <div className="form-row"><div className="form-group"><label>Type</label><select className="select" value={form.experience_type} onChange={f('experience_type')}><option value="spa_treatment">Spa Treatment</option><option value="yacht_charter">Yacht Charter</option><option value="wellness">Wellness</option><option value="dining">Dining</option><option value="excursion">Excursion</option><option value="event">Event</option><option value="other">Other</option></select></div><div className="form-group"><label>Status</label><select className="select" value={form.status} onChange={f('status')}><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div></div>
+          <div className="form-group"><label>Experience Name</label><input className="input" placeholder="e.g. Caribbean Botanical Massage" value={form.name} onChange={f('name')}/></div>
+          <div className="form-row"><div className="form-group"><label>Date</label><input className="input" type="date" value={form.date} onChange={f('date')}/></div><div className="form-group"><label>Duration (hours)</label><input className="input" type="number" step="0.25" value={form.duration_hours} onChange={f('duration_hours')}/></div></div>
+          <div className="form-row"><div className="form-group"><label>Amount</label><input className="input" type="number" value={form.amount} onChange={f('amount')}/></div><div className="form-group"><label>Currency</label><select className="select" value={form.currency} onChange={f('currency')}>{Object.keys(CURRENCIES).map(c=><option key={c}>{c}</option>)}</select></div></div>
+          <div className="form-group"><label>Vendor / Staff</label><input className="input" placeholder="e.g. Simone Clarke" value={form.vendor} onChange={f('vendor')}/></div>
+          <div className="form-group" style={{marginBottom:0}}><label>Notes</label><textarea className="input" rows={3} value={form.notes} onChange={f('notes')}/></div>
         </div>
-      </form>
+      </div>
     </>
   )
 }
