@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { Menu, Shield } from 'lucide-react'
+import { Menu, Shield, LogOut } from 'lucide-react'
 import Sidebar, { useDiscretionMode } from './Sidebar'
 import { Toaster } from 'react-hot-toast'
+import { supabase } from '@/lib/supabase'
 
 const PAGE_TITLES: Record<string, string> = {
   '/':              'Property Overview',
@@ -38,6 +39,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { discretion } = useDiscretionMode()
   const router = useRouter()
   const title = getPageTitle(router.pathname)
+
+  async function signOut() {
+    await supabase.auth.signOut()
+  }
 
   return (
     <div className="crm-shell">
@@ -80,6 +85,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <span className="live-dot" />
               Live
             </div>
+            <button
+              onClick={signOut}
+              title="Sign out"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--text-muted)', display: 'flex', alignItems: 'center',
+                gap: 5, fontSize: 11, fontFamily: 'var(--font-ui)',
+                letterSpacing: '0.08em', textTransform: 'uppercase',
+                padding: '4px 8px', borderRadius: 'var(--radius-sm)',
+                transition: 'color 150ms',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+            >
+              <LogOut size={13} /> Sign Out
+            </button>
           </div>
         </header>
 
