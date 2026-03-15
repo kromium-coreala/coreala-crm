@@ -178,7 +178,7 @@ Generate exactly 6 suggestions covering: Room Setup, Dining, Experiences, Wellne
           {/* Welcome message */}
           <div style={{ padding: '14px 16px', background: 'var(--gold-glow)', border: '1px solid var(--border-mid)', borderRadius: 'var(--radius-sm)', marginBottom: 20 }}>
             <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8 }}>GM Welcome Message</div>
-            <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.7, fontStyle: 'italic', fontFamily: 'var(--font-editorial)', fontSize: 15 }}>{plan.welcome}</div>
+            <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.7, fontStyle: 'italic', fontFamily: 'var(--font-editorial)' }}>{plan.welcome}</div>
           </div>
 
           {/* Suggestions grid */}
