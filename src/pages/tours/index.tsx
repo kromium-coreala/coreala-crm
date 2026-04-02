@@ -215,7 +215,7 @@ export default function Tours() {
                       <td style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
                         {(tour.event_type ?? '—').replace(/_/g,' ')}
                       </td>
-                      <td style={{ className='hide-mobile' style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, fontStyle: 'italic', color: tour.lead_score >= 85 ? 'var(--status-cancel)' : '#fbbf24' }}>
+                      <td className='hide-mobile' style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, fontStyle: 'italic', color: (tour.lead_score ?? 0) >= 85 ? 'var(--status-cancel)' : '#fbbf24' }}>
                         {tour.lead_score ?? 0}
                       </td>
                       <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>

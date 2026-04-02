@@ -197,7 +197,7 @@ export default function Nurture() {
                             {tier}
                           </span>
                         </td>
-                        <td style={{ className='hide-mobile' style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, color: tierColor, fontStyle: 'italic' }}>
+                        <td className='hide-mobile' style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, color: tierColor, fontStyle: 'italic' }}>
                           {lead.lead_score ?? 0}
                         </td>
                         <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>Day {dayIn}</td>
