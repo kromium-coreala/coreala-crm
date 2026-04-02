@@ -5,7 +5,8 @@ import {
   LayoutDashboard, Users, CalendarDays, Sparkles, Heart,
   PartyPopper, AlertTriangle, TrendingUp, Settings, X, Menu,
   Shield, BedDouble, Package, BarChart3, Sun, Moon, EyeOff, Eye,
-  UtensilsCrossed, ClipboardCheck
+  UtensilsCrossed, ClipboardCheck,
+  Inbox, PieChart, CalendarRange, Mail, FileText, MapPin
 } from 'lucide-react'
 
 // ─── Contexts ────────────────────────────────────────────────────
