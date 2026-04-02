@@ -167,66 +167,63 @@ export default function Nurture() {
           </div>
 
           <div className="card card-elevated">
-            <div className="table-wrap">
-              <table>
-                <thead><tr>
-                  <th>Lead</th><th>Tier</th><th className="hide-mobile">Score</th><th className="hide-mobile">Day</th><th>Next Action</th><th>Status</th>
-                </tr></thead>
-                <tbody>
-                  {loading && Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i}><td colSpan={6}><div className="skeleton" style={{ height: 40 }} /></td></tr>
-                  ))}
-                  {!loading && filtered.map(lead => {
-                    const tier   = lead.lead_tier as Tier
-                    const seq    = SEQ[tier] ?? []
-                    const dayIn  = differenceInDays(new Date(), parseISO(lead.created_at))
-                    const next   = seq.find(s => s.day > dayIn) ?? seq[seq.length - 1]
-                    const tierColor = tier === 'hot' ? 'var(--status-cancel)' : tier === 'warm' ? '#fbbf24' : 'var(--text-muted)'
-                    const Icon = next ? CHANNEL_ICON[next.channel as keyof typeof CHANNEL_ICON] : Mail
+            {loading && <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton" style={{ height: 56 }} />)}
+            </div>}
+            {!loading && filtered.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-muted)', fontSize: 13 }}>
+                No leads in this sequence tier
+              </div>
+            )}
+            {!loading && filtered.map(lead => {
+              const tier      = lead.lead_tier as Tier
+              const seq       = SEQ[tier] ?? []
+              const dayIn     = differenceInDays(new Date(), parseISO(lead.created_at))
+              const next      = seq.find(s => s.day > dayIn) ?? seq[seq.length - 1]
+              const tierColor = tier === 'hot' ? 'var(--status-cancel)' : tier === 'warm' ? '#fbbf24' : 'var(--text-muted)'
+              const Icon      = next ? CHANNEL_ICON[next.channel as keyof typeof CHANNEL_ICON] : Mail
+              const isSelected = selected?.id === lead.id
 
-                    return (
-                      <tr key={lead.id}
-                        style={{ cursor: 'pointer', background: selected?.id === lead.id ? 'var(--gold-glow)' : undefined }}
-                        onClick={() => setSelected(selected?.id === lead.id ? null : lead)}>
-                        <td>
-                          <div style={{ fontWeight: 500, fontSize: 13 }}>{lead.first_name} {lead.last_name}</div>
-                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{lead.email}</div>
-                        </td>
-                        <td>
-                          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: tierColor }}>
-                            {tier}
-                          </span>
-                        </td>
-                        <td className='hide-mobile' style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, color: tierColor, fontStyle: 'italic' }}>
-                          {lead.lead_score ?? 0}
-                        </td>
-                        <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>Day {dayIn}</td>
-                        <td>
-                          {next && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <Icon size={12} color={CHANNEL_COLOR[next.channel]} />
-                              <span style={{ fontSize: 11, color: 'var(--text-secondary)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {next.action}
-                              </span>
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          <span className={`badge ${lead.status === 'contacted' ? 'badge-completed' : lead.status === 'nurturing' ? 'badge-planning' : 'badge-enquiry'}`}>
-                            {lead.status}
-                          </span>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                  {!loading && filtered.length === 0 && (
-                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-muted)' }}>
-                      No leads in this sequence tier
-                    </td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+              return (
+                <div key={lead.id}
+                  onClick={() => setSelected(isSelected ? null : lead)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '12px 0',
+                    borderBottom: '1px solid var(--border-subtle)',
+                    cursor: 'pointer',
+                    background: isSelected ? 'var(--gold-glow)' : 'transparent',
+                    borderRadius: isSelected ? 'var(--radius-sm)' : 0,
+                    paddingLeft: isSelected ? 10 : 0,
+                    paddingRight: isSelected ? 10 : 0,
+                  }}>
+                  {/* Tier colour strip */}
+                  <div style={{ width: 3, height: 36, borderRadius: 2, background: tierColor, flexShrink: 0 }} />
+                  {/* Lead info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {lead.first_name} {lead.last_name}
+                    </div>
+                    {next && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
+                        <Icon size={10} color={CHANNEL_COLOR[next.channel]} />
+                        <span style={{ fontSize: 10, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>
+                          {next.action}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Score */}
+                  <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: tierColor, fontStyle: 'italic', flexShrink: 0 }}>
+                    {lead.lead_score ?? 0}
+                  </div>
+                  {/* Status badge */}
+                  <span className={`badge ${lead.status === 'contacted' ? 'badge-completed' : lead.status === 'nurturing' ? 'badge-planning' : 'badge-enquiry'}`} style={{ flexShrink: 0 }}>
+                    {lead.status}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
 

@@ -152,7 +152,7 @@ export default function Experiences() {
                       <div style={{ fontSize: 13 }}>{gname(e)}</div>
                       {e.guests?.vip_tier && <span className={`badge badge-${e.guests.vip_tier}`} style={{ fontSize: 9 }}>{e.guests.vip_tier}</span>}
                     </td>
-                    <td>
+                    <td className='hide-mobile'>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--text-secondary)' }}>
                         <span style={{ width: 7, height: 7, borderRadius: 2, background: TYPE_COLORS[e.experience_type] || '#94a3b8' }} />
                         {e.experience_type?.replace('_', ' ')}
