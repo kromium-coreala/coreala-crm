@@ -103,10 +103,10 @@ export default function Vendors() {
                   <tr>
                     <th>Vendor</th>
                     <th>Category</th>
-                    <th>Island</th>
+                    <th className="hide-mobile">Island</th>
                     <th>Contact</th>
-                    <th>Lead Days</th>
-                    <th>Rating</th>
+                    <th className="hide-mobile">Lead Days</th>
+                    <th className="hide-mobile">Rating</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -118,12 +118,12 @@ export default function Vendors() {
                         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{v.notes?.slice(0, 70)}{v.notes?.length > 70 ? '…' : ''}</div>
                       </td>
                       <td style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{v.category?.replace('_', ' ')}</td>
-                      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{v.island}</td>
-                      <td>
+                      <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>{v.island}</td>
+                      <td className='hide-mobile'>
                         <div style={{ fontSize: 12 }}>{v.contact_name}</div>
                         <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{v.email}</div>
                       </td>
-                      <td style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
+                      <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
                         {v.import_lead_days > 0 ? `${v.import_lead_days}d` : 'Same day'}
                       </td>
                       <td>
@@ -174,11 +174,11 @@ export default function Vendors() {
                     <tr key={o.id}>
                       <td style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 500 }}>{o.description}</td>
                       <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{o.vendors?.name}</td>
-                      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{o.origin_island || o.vendors?.island}</td>
-                      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{o.order_date ? format(parseISO(o.order_date), 'dd MMM') : '—'}</td>
+                      <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>{o.origin_island || o.vendors?.island}</td>
+                      <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>{o.order_date ? format(parseISO(o.order_date), 'dd MMM') : '—'}</td>
                       <td style={{ fontSize: 12 }}>{o.expected_arrival ? format(parseISO(o.expected_arrival), 'dd MMM') : '—'}</td>
                       <td style={{ color: 'var(--gold)', fontSize: 13 }}>{o.amount ? formatCurrency(o.amount, o.currency || 'USD') : '—'}</td>
-                      <td style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'monospace' }}>{o.tracking_number || '—'}</td>
+                      <td className='hide-mobile' style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'monospace' }}>{o.tracking_number || '—'}</td>
                       <td>
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: 5,

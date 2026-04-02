@@ -270,7 +270,7 @@ export default function Dining() {
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>Date</th><th>Time</th><th>Guest</th><th>Location</th><th>Covers</th><th>Menu</th><th>Amount</th><th>Status</th></tr>
+                <tr><th>Date</th><th>Time</th><th>Guest</th><th className="hide-mobile">Location</th><th className="hide-mobile">Covers</th><th className="hide-mobile">Menu</th><th className="hide-mobile">Amount</th><th>Status</th></tr>
               </thead>
               <tbody>
                 {history.map(r => (
@@ -281,10 +281,10 @@ export default function Dining() {
                       <div style={{ fontSize: 13, fontWeight: 500 }}>{gname(r.guests)}</div>
                       {r.guests?.vip_tier && <span className={`badge badge-${r.guests.vip_tier}`} style={{ fontSize: 9 }}>{r.guests.vip_tier}</span>}
                     </td>
-                    <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{LOCATION_LABELS[r.location]}</td>
-                    <td style={{ fontSize: 13, textAlign: 'center' }}>{r.covers}</td>
-                    <td style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{r.menu_preference?.replace(/_/g, ' ')}</td>
-                    <td style={{ color: 'var(--gold)', fontSize: 13 }}>{r.amount ? formatCurrency(r.amount, r.currency || 'USD') : '—'}</td>
+                    <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{LOCATION_LABELS[r.location]}</td>
+                    <td className='hide-mobile' style={{ fontSize: 13, textAlign: 'center' }}>{r.covers}</td>
+                    <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{r.menu_preference?.replace(/_/g, ' ')}</td>
+                    <td className='hide-mobile' style={{ color: 'var(--gold)', fontSize: 13 }}>{r.amount ? formatCurrency(r.amount, r.currency || 'USD') : '—'}</td>
                     <td><span className={`badge badge-${r.status}`}>{r.status}</span></td>
                   </tr>
                 ))}

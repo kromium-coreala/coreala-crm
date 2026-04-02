@@ -332,7 +332,7 @@ export default function PreArrival() {
                     </div>
 
                     {/* Tasks by category */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+                    <div className='form-row' style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
                       {Object.entries(byCategory).map(([cat, catTasks]) => (
                         <div key={cat}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>

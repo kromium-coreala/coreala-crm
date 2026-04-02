@@ -87,12 +87,12 @@ export default function Events() {
               <thead>
                 <tr>
                   <th>Event</th>
-                  <th>Type</th>
+                  <th className="hide-mobile">Type</th>
                   <th>Date</th>
                   <th>Guests</th>
-                  <th>Contact</th>
-                  <th>Budget</th>
-                  <th>Revenue</th>
+                  <th className="hide-mobile">Contact</th>
+                  <th className="hide-mobile">Budget</th>
+                  <th className="hide-mobile">Revenue</th>
                   <th>Status</th>
                   <th></th>
                 </tr>
@@ -104,14 +104,14 @@ export default function Events() {
                       <div style={{ fontWeight: 500, fontSize: 13 }}>{e.name}</div>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{e.notes?.slice(0, 60)}{e.notes?.length > 60 ? '…' : ''}</div>
                     </td>
-                    <td style={{ textTransform: 'capitalize', fontSize: 12, color: 'var(--text-secondary)' }}>{e.event_type?.replace('_', ' ')}</td>
+                    <td className='hide-mobile' style={{ textTransform: 'capitalize', fontSize: 12, color: 'var(--text-secondary)' }}>{e.event_type?.replace('_', ' ')}</td>
                     <td style={{ fontSize: 12 }}>
                       <div>{format(parseISO(e.date), 'dd MMM yyyy')}</div>
                     </td>
                     <td style={{ fontSize: 13, textAlign: 'center' }}>{e.guest_count}</td>
-                    <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{e.contact_name}</td>
-                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{e.budget ? formatCurrency(e.budget, e.currency || 'USD') : '—'}</td>
-                    <td style={{ color: 'var(--gold)', fontSize: 13 }}>{e.total_revenue ? formatCurrency(e.total_revenue, e.currency || 'USD') : '—'}</td>
+                    <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{e.contact_name}</td>
+                    <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>{e.budget ? formatCurrency(e.budget, e.currency || 'USD') : '—'}</td>
+                    <td className='hide-mobile' style={{ color: 'var(--gold)', fontSize: 13 }}>{e.total_revenue ? formatCurrency(e.total_revenue, e.currency || 'USD') : '—'}</td>
                     <td><span className={`badge badge-${e.status}`}>{e.status}</span></td>
                     <td>
                       <Link href={`/events/${e.id}`} className="btn btn-ghost btn-sm btn-icon">

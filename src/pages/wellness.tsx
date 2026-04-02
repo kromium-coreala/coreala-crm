@@ -124,7 +124,7 @@ export default function Wellness() {
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>Guest</th><th>Treatment</th><th>Date</th><th>Duration</th><th>Amount</th><th>Therapist</th><th>Status</th></tr>
+                <tr><th>Guest</th><th>Treatment</th><th>Date</th><th className="hide-mobile">Duration</th><th className="hide-mobile">Amount</th><th className="hide-mobile">Therapist</th><th>Status</th></tr>
               </thead>
               <tbody>
                 {sessions.map(s => (
@@ -137,9 +137,9 @@ export default function Wellness() {
                     </td>
                     <td style={{ fontSize: 13, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</td>
                     <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{format(parseISO(s.date), 'dd MMM yyyy')}</td>
-                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{s.duration_hours ? `${s.duration_hours}h` : '—'}</td>
-                    <td style={{ color: 'var(--gold)', fontSize: 13 }}>{s.amount ? formatCurrency(s.amount, s.currency || 'USD') : '—'}</td>
-                    <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{s.vendor || '—'}</td>
+                    <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>{s.duration_hours ? `${s.duration_hours}h` : '—'}</td>
+                    <td className='hide-mobile' style={{ color: 'var(--gold)', fontSize: 13 }}>{s.amount ? formatCurrency(s.amount, s.currency || 'USD') : '—'}</td>
+                    <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{s.vendor || '—'}</td>
                     <td><span className={`badge badge-${s.status}`}>{s.status}</span></td>
                   </tr>
                 ))}

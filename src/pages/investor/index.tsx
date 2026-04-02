@@ -136,7 +136,7 @@ export default function Investor() {
           <div className="card-label" style={{ marginBottom: 4 }}>Revenue Trend</div>
           <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--text-primary)', marginBottom: 20 }}>Monthly Performance</div>
           <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={monthlyData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+            <AreaChart data={monthlyData} margin={{ top: 4, right: 8, bottom: 0, left: -8 }}>
               <defs>
                 <linearGradient id="invGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="var(--gold)" stopOpacity={0.3} />
@@ -146,7 +146,7 @@ export default function Investor() {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
               <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false}
-                tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} width={44} />
+                tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} width={36} />
               <Tooltip
                 contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-mid)', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 12 }}
                 formatter={(v: any) => [`$${Number(v).toLocaleString()}`, 'Revenue']}

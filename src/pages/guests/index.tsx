@@ -154,11 +154,11 @@ export default function Guests() {
                 <tr>
                   <th>Guest</th>
                   <th>Tier</th>
-                  <th>Nationality</th>
-                  <th>Stays</th>
-                  <th>Last Stay</th>
+                  <th className="hide-mobile">Nationality</th>
+                  <th className="hide-mobile">Stays</th>
+                  <th className="hide-mobile">Last Stay</th>
                   <th>Lifetime Value</th>
-                  <th>Discretion</th>
+                  <th className="hide-mobile">Discretion</th>
                   <th></th>
                 </tr>
               </thead>
@@ -185,15 +185,15 @@ export default function Guests() {
                       </div>
                     </td>
                     <td><span className={`badge badge-${g.vip_tier}`}>{g.vip_tier}</span></td>
-                    <td style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{g.nationality || '—'}</td>
-                    <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{g.total_stays || 0}</td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+                    <td className='hide-mobile' style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{g.nationality || '—'}</td>
+                    <td className='hide-mobile' style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{g.total_stays || 0}</td>
+                    <td className='hide-mobile' style={{ color: 'var(--text-muted)', fontSize: 12 }}>
                       {g.last_stay ? format(parseISO(g.last_stay), 'dd MMM yyyy') : '—'}
                     </td>
                     <td style={{ color: 'var(--gold)', fontSize: 13, fontWeight: 500 }}>
                       {g.total_revenue ? formatCurrency(g.total_revenue, 'USD') : '—'}
                     </td>
-                    <td>
+                    <td className='hide-mobile'>
                       {g.discretion_level !== 'standard' && (
                         <span className={`badge badge-${g.discretion_level}`}>{g.discretion_level}</span>
                       )}

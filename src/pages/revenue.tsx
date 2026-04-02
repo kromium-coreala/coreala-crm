@@ -97,7 +97,7 @@ export default function Revenue() {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
               <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false}
-                tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} width={44} />
+                tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} width={36} />
               <Tooltip
                 contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-mid)', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 12 }}
                 formatter={(v: any) => [`$${Number(v).toLocaleString()}`, '']}

@@ -123,11 +123,11 @@ export default function Reservations() {
               <thead>
                 <tr>
                   <th>Guest</th>
-                  <th>Room</th>
-                  <th>Type</th>
+                  <th className="hide-mobile">Room</th>
+                  <th className="hide-mobile">Type</th>
                   <th>Check-in</th>
-                  <th>Check-out</th>
-                  <th>Nights</th>
+                  <th className="hide-mobile">Check-out</th>
+                  <th className="hide-mobile">Nights</th>
                   <th>Total</th>
                   <th>Status</th>
                   <th>Arrival</th>
@@ -145,14 +145,14 @@ export default function Reservations() {
                           {r.guests?.vip_tier && <span className={`badge badge-${r.guests.vip_tier}`} style={{ fontSize: 9, marginTop: 3 }}>{r.guests.vip_tier}</span>}
                         </div>
                       </td>
-                      <td style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: 'var(--gold)', letterSpacing: '0.08em' }}>{r.room_number}</td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{r.accommodation_type?.replace(/_/g, ' ')}</td>
+                      <td className='hide-mobile' style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: 'var(--gold)', letterSpacing: '0.08em' }}>{r.room_number}</td>
+                      <td className='hide-mobile' style={{ color: 'var(--text-muted)', fontSize: 12 }}>{r.accommodation_type?.replace(/_/g, ' ')}</td>
                       <td style={{ fontSize: 12 }}>{format(parseISO(r.check_in), 'dd MMM yyyy')}</td>
-                      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{format(parseISO(r.check_out), 'dd MMM yyyy')}</td>
-                      <td style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>{nights}</td>
+                      <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>{format(parseISO(r.check_out), 'dd MMM yyyy')}</td>
+                      <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>{nights}</td>
                       <td style={{ color: 'var(--gold)', fontSize: 13 }}>{formatCurrency(r.total_amount, r.currency)}</td>
                       <td><span className={`badge badge-${r.status}`}>{r.status.replace('_', ' ')}</span></td>
-                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.arrival_method?.replace('_', ' ')}</td>
+                      <td className='hide-mobile' style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.arrival_method?.replace('_', ' ')}</td>
                       <td>
                         <Link href={`/reservations/${r.id}`} className="btn btn-ghost btn-sm btn-icon">
                           <ChevronRight size={14} />

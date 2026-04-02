@@ -94,7 +94,7 @@ export default function Experiences() {
         <div className="card card-elevated">
           <div className="card-label" style={{ marginBottom: 12 }}>By Type</div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <ResponsiveContainer width={130} height={130}>
+            <ResponsiveContainer width="100%" height={120}>
               <PieChart>
                 <Pie data={byType} cx="50%" cy="50%" innerRadius={35} outerRadius={60} dataKey="value" strokeWidth={0}>
                   {byType.map((entry, i) => <Cell key={i} fill={entry.color} />)}
@@ -136,12 +136,12 @@ export default function Experiences() {
                 <tr>
                   <th>Experience</th>
                   <th>Guest</th>
-                  <th>Type</th>
+                  <th className="hide-mobile">Type</th>
                   <th>Date</th>
-                  <th>Duration</th>
-                  <th>Amount</th>
+                  <th className="hide-mobile">Duration</th>
+                  <th className="hide-mobile">Amount</th>
                   <th>Status</th>
-                  <th>Vendor</th>
+                  <th className="hide-mobile">Vendor</th>
                 </tr>
               </thead>
               <tbody>

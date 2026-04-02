@@ -128,7 +128,7 @@ export default function Occupancy() {
       </div>
 
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
           {Array.from({ length: 24 }).map((_, i) => (
             <div key={i} className="skeleton" style={{ height: 110 }} />
           ))}
