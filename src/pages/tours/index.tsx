@@ -186,12 +186,13 @@ export default function Tours() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 340px' : '1fr', gap: 16, alignItems: 'start' }}>
+      {selected && <div className='split-panel-backdrop' onClick={() => setSelected(null)} />}
+      <div className='split-panel' style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 340px' : '1fr', gap: 16, alignItems: 'start' }}>
         <div className="card card-elevated">
           <div className="table-wrap">
             <table>
               <thead><tr>
-                <th>Lead</th><th>Event</th><th>Score</th><th>Tour Type</th>
+                <th>Lead</th><th>Event</th><th className="hide-mobile">Score</th><th className="hide-mobile">Tour Type</th>
                 <th>Scheduled</th><th>Status</th><th>Outcome</th>
               </tr></thead>
               <tbody>
@@ -214,10 +215,10 @@ export default function Tours() {
                       <td style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
                         {(tour.event_type ?? '—').replace(/_/g,' ')}
                       </td>
-                      <td style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, fontStyle: 'italic', color: tour.lead_score >= 85 ? 'var(--status-cancel)' : '#fbbf24' }}>
+                      <td style={{ className='hide-mobile' style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, fontStyle: 'italic', color: tour.lead_score >= 85 ? 'var(--status-cancel)' : '#fbbf24' }}>
                         {tour.lead_score ?? 0}
                       </td>
-                      <td style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
+                      <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
                         {(tour.notes ?? '').match(/\[Tour: ([^\]]+)\]/)?.[1]?.replace(/_/g,' ') ?? 'In Person'}
                       </td>
                       <td>
@@ -271,7 +272,7 @@ export default function Tours() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="card card-elevated" style={{ position: 'sticky', top: 16 }}>
+          <div className='card card-elevated detail-panel' style={{ position: 'sticky', top: 16 }}>
             <div className="flex-between" style={{ marginBottom: 14 }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{selected.first_name} {selected.last_name}</div>

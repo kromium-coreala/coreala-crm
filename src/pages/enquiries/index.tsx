@@ -145,7 +145,8 @@ export default function Enquiries() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: 16, alignItems: 'start' }}>
+      {selected && <div className='split-panel-backdrop' onClick={() => setSelected(null)} />}
+      <div className='split-panel' style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: 16, alignItems: 'start' }}>
 
         {/* Table */}
         <div className="card card-elevated">
@@ -173,7 +174,7 @@ export default function Enquiries() {
               <thead>
                 <tr>
                   <th>Lead</th><th>Score</th><th>Tier</th><th>Event</th>
-                  <th>Budget</th><th>Status</th><th>Assigned</th><th>Received</th>
+                  <th className="hide-mobile">Budget</th><th>Status</th><th className="hide-mobile">Assigned</th><th className="hide-mobile">Received</th>
                 </tr>
               </thead>
               <tbody>
@@ -206,16 +207,16 @@ export default function Enquiries() {
                       <td style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
                         {(lead.event_type ?? '—').replace(/_/g, ' ')}
                       </td>
-                      <td style={{ fontSize: 12, color: 'var(--gold)' }}>
+                      <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--gold)' }}>
                         {lead.budget_range ? lead.budget_range.replace(/_/g, ' ') : '—'}
                       </td>
                       <td><span className={`badge badge-${lead.status === 'new' ? 'enquiry' : lead.status === 'booking_confirmed' ? 'completed' : lead.status === 'lost' ? 'cancelled' : 'planning'}`}>
                         {(lead.status ?? 'new').replace(/_/g, ' ')}
                       </span></td>
-                      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                      <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                         {lead.assignee?.full_name ?? 'Unassigned'}
                       </td>
-                      <td style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                      <td className='hide-mobile' style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                         {timeAgo(lead.created_at)}
                       </td>
                     </tr>
@@ -237,7 +238,7 @@ export default function Enquiries() {
             borderColor: selected.lead_tier === 'hot' ? 'rgba(248,113,113,0.35)'
               : selected.lead_tier === 'warm' ? 'rgba(251,191,36,0.25)' : 'var(--border-subtle)',
             position: 'sticky', top: 16,
-          }}>
+          }} className='detail-panel'>
             <div className="flex-between" style={{ marginBottom: 16 }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{selected.first_name} {selected.last_name}</div>

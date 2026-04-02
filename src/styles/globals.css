@@ -274,3 +274,133 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:0.12em;text-tr
 @supports(padding-bottom:env(safe-area-inset-bottom)){
   .crm-sidebar{padding-bottom:env(safe-area-inset-bottom);}
 }
+
+/* ================================================================
+   MOBILE OVERRIDES — Lead Gen pages
+   All split-panel layouts stack on mobile.
+   Tables reduce to essential columns only.
+================================================================ */
+
+/* Force tables to be readable without horizontal scroll on mobile */
+@media(max-width:767px) {
+  /* Reduce global table min-width */
+  table { min-width: 0; width: 100%; }
+
+  /* Hide lower-priority table columns on mobile */
+  .hide-mobile { display: none !important; }
+
+  /* Split panel: stack vertically */
+  .split-panel {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Detail panel: not sticky on mobile, full width */
+  .detail-panel {
+    position: static !important;
+    top: unset !important;
+  }
+
+  /* Page header row: stack on mobile */
+  .page-header-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .page-header-row .btn { align-self: flex-start; }
+
+  /* Stat grid: 2-col always on mobile */
+  .stat-grid {
+    grid-template-columns: repeat(2,1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* grid-2 stays single col on mobile */
+  .grid-2 { grid-template-columns: 1fr !important; }
+
+  /* Filter rows wrap tightly */
+  .filter-row { gap: 6px; }
+
+  /* Cards: tighter padding on mobile */
+  .card { padding: 14px; }
+
+  /* Form rows: single col on mobile */
+  .form-row { grid-template-columns: 1fr !important; gap: 0 !important; }
+}
+
+/* Tablet: 768–1024 */
+@media(min-width:768px) and (max-width:1024px) {
+  table { min-width: 0; }
+  .split-panel {
+    grid-template-columns: 1fr !important;
+  }
+  .detail-panel {
+    position: static !important;
+  }
+}
+
+/* ================================================================
+   MOBILE BOTTOM SHEET — Detail panels slide up from bottom
+   On screens < 768px the detail panel becomes a fixed bottom drawer.
+================================================================ */
+@media(max-width:767px) {
+  .detail-panel {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 16px 16px 0 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    border-top: 1px solid var(--border-mid) !important;
+    z-index: 200;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.7) !important;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Drag handle visual hint */
+  .detail-panel::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--border-mid);
+    border-radius: 2px;
+    margin: 8px auto 16px;
+  }
+
+  /* Dim the background when panel is open */
+  .split-panel-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+  }
+}
+
+@media(min-width:768px) {
+  .split-panel-backdrop { display: none; }
+}
+
+/* Nurture: sequence steps scroll on small screens */
+@media(max-width:767px) {
+  /* Attribution bar chart: shrink height */
+  .recharts-responsive-container { min-height: 160px; }
+
+  /* Availability calendar: smaller date cells */
+  .availability-day { font-size: 11px !important; }
+
+  /* Proposals add-on grid: single col on narrow mobile */
+  .addon-grid { grid-template-columns: 1fr !important; }
+
+  /* Page title smaller on mobile */
+  .page-title { font-size: 24px !important; }
+
+  /* Stat grid card values: smaller on tiny screens */
+  .card-value { font-size: 28px !important; }
+}

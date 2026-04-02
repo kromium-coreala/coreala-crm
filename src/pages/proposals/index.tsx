@@ -221,7 +221,7 @@ export default function Proposals() {
 
             <div className="card card-elevated">
               <div className="card-label" style={{ marginBottom: 12 }}>Add-Ons</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              <div className='addon-grid' style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                 {ADDONS.map(addon => (
                   <div key={addon.id}
                     onClick={() => toggleAddon(addon.id)}
@@ -245,7 +245,7 @@ export default function Proposals() {
           </div>
 
           {/* Right: summary + generate */}
-          <div className="card card-elevated" style={{ position: 'sticky', top: 16 }}>
+          <div className='card card-elevated detail-panel' style={{ position: 'sticky', top: 16 }}>
             <div className="card-label" style={{ marginBottom: 14 }}>Proposal Summary</div>
 
             {selectedLead ? (
@@ -330,8 +330,8 @@ export default function Proposals() {
           <div className="table-wrap">
             <table>
               <thead><tr>
-                <th>Lead</th><th>Package</th><th>Total</th><th>Deposit</th>
-                <th>Generated</th><th>Sent</th><th>Accepted</th><th>Actions</th>
+                <th>Lead</th><th>Package</th><th>Total</th><th className="hide-mobile">Deposit</th>
+                <th className="hide-mobile">Generated</th><th>Sent</th><th>Accepted</th><th>Actions</th>
               </tr></thead>
               <tbody>
                 {loading && Array.from({ length: 4 }).map((_,i) => (
@@ -351,10 +351,10 @@ export default function Proposals() {
                     <td style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--gold)', fontStyle: 'italic' }}>
                       {p.total_usd ? formatCurrency(p.total_usd, 'USD') : '—'}
                     </td>
-                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                       {p.deposit_usd ? formatCurrency(p.deposit_usd, 'USD') : '—'}
                     </td>
-                    <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    <td className='hide-mobile' style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                       {format(parseISO(p.created_at), 'dd MMM yyyy')}
                     </td>
                     <td>

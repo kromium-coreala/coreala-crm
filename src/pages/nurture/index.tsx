@@ -151,7 +151,8 @@ export default function Nurture() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 400px' : '1fr', gap: 16, alignItems: 'start' }}>
+      {selected && <div className='split-panel-backdrop' onClick={() => setSelected(null)} />}
+      <div className='split-panel' style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 400px' : '1fr', gap: 16, alignItems: 'start' }}>
 
         {/* Lead list */}
         <div>
@@ -169,7 +170,7 @@ export default function Nurture() {
             <div className="table-wrap">
               <table>
                 <thead><tr>
-                  <th>Lead</th><th>Tier</th><th>Score</th><th>Day</th><th>Next Action</th><th>Status</th>
+                  <th>Lead</th><th>Tier</th><th className="hide-mobile">Score</th><th className="hide-mobile">Day</th><th>Next Action</th><th>Status</th>
                 </tr></thead>
                 <tbody>
                   {loading && Array.from({ length: 5 }).map((_, i) => (
@@ -196,15 +197,15 @@ export default function Nurture() {
                             {tier}
                           </span>
                         </td>
-                        <td style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, color: tierColor, fontStyle: 'italic' }}>
+                        <td style={{ className='hide-mobile' style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, color: tierColor, fontStyle: 'italic' }}>
                           {lead.lead_score ?? 0}
                         </td>
-                        <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>Day {dayIn}</td>
+                        <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>Day {dayIn}</td>
                         <td>
                           {next && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <Icon size={12} color={CHANNEL_COLOR[next.channel]} />
-                              <span style={{ fontSize: 11, color: 'var(--text-secondary)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <span style={{ fontSize: 11, color: 'var(--text-secondary)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {next.action}
                               </span>
                             </div>
@@ -236,7 +237,7 @@ export default function Nurture() {
           const dayIn = differenceInDays(new Date(), parseISO(selected.created_at))
 
           return (
-            <div className="card card-elevated" style={{ position: 'sticky', top: 16 }}>
+            <div className='card card-elevated detail-panel' style={{ position: 'sticky', top: 16 }}>
               <div className="flex-between" style={{ marginBottom: 14 }}>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{selected.first_name} {selected.last_name}</div>

@@ -168,7 +168,8 @@ export default function Availability() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 300px' : '1fr', gap: 16, alignItems: 'start' }}>
+      {selected && <div className='split-panel-backdrop' onClick={() => setSelected(null)} />}
+      <div className='split-panel' style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 300px' : '1fr', gap: 16, alignItems: 'start' }}>
         <div className="card card-elevated">
           {/* Month navigation */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -241,7 +242,7 @@ export default function Availability() {
 
         {/* Date detail */}
         {selected && (
-          <div className="card card-elevated" style={{ position: 'sticky', top: 16 }}>
+          <div className='card card-elevated detail-panel' style={{ position: 'sticky', top: 16 }}>
             <div className="flex-between" style={{ marginBottom: 14 }}>
               <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, fontStyle: 'italic' }}>
                 {format(parseISO(selected), 'dd MMMM yyyy')}

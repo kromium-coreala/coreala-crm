@@ -256,8 +256,8 @@ export default function Attribution() {
             <div className="table-wrap">
               <table>
                 <thead><tr>
-                  <th>Campaign</th><th>Platform</th><th>Spend</th><th>Leads</th>
-                  <th>Qual.</th><th>Tours</th><th>Won</th><th>Revenue</th><th>ROI</th><th>CPL</th><th>Status</th>
+                  <th>Campaign</th><th>Platform</th><th className="hide-mobile">Spend</th><th>Leads</th>
+                  <th className="hide-mobile">Qual.</th><th className="hide-mobile">Tours</th><th>Won</th><th>Revenue</th><th>ROI</th><th className="hide-mobile">CPL</th><th className="hide-mobile">Status</th>
                 </tr></thead>
                 <tbody>
                   {loading && <tr><td colSpan={11}><div className="skeleton" style={{ height: 40 }} /></td></tr>}
@@ -269,14 +269,14 @@ export default function Attribution() {
                         <td><span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: PLATFORM_COLORS[c.platform] ?? 'var(--text-muted)' }}>{c.platform}</span></td>
                         <td style={{ fontSize: 12 }}>{fmt$(c.total_spend_usd ?? 0)}</td>
                         <td style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--gold)' }}>{c.leads_total ?? 0}</td>
-                        <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{c.leads_qualified ?? 0}</td>
-                        <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{c.tours_booked ?? 0}</td>
+                        <td className="hide-mobile" style={{ fontSize: 12, color: 'var(--text-muted)' }}>{c.leads_qualified ?? 0}</td>
+                        <td className="hide-mobile" style={{ fontSize: 12, color: 'var(--text-muted)' }}>{c.tours_booked ?? 0}</td>
                         <td style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, color: 'var(--status-in)' }}>{c.bookings_confirmed ?? 0}</td>
                         <td style={{ fontSize: 12, color: 'var(--status-in)' }}>{c.revenue_usd > 0 ? fmt$(c.revenue_usd) : '—'}</td>
                         <td style={{ fontSize: 12, fontWeight: 600, color: cRoi && cRoi > 1000 ? 'var(--status-in)' : '#fbbf24' }}>
                           {cRoi !== null ? `${cRoi.toLocaleString()}%` : '—'}
                         </td>
-                        <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                        <td className='hide-mobile' style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                           {c.leads_total > 0 ? fmt$(c.total_spend_usd / c.leads_total) : '—'}
                         </td>
                         <td><span className={`badge ${c.status === 'active' ? 'badge-completed' : c.status === 'paused' ? 'badge-enquiry' : 'badge-standard'}`}>{c.status}</span></td>
