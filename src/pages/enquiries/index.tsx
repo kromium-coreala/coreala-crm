@@ -234,11 +234,11 @@ export default function Enquiries() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="card card-elevated" style={{
+          <div className="card card-elevated detail-panel" style={{
             borderColor: selected.lead_tier === 'hot' ? 'rgba(248,113,113,0.35)'
               : selected.lead_tier === 'warm' ? 'rgba(251,191,36,0.25)' : 'var(--border-subtle)',
             position: 'sticky', top: 16,
-          }} className='detail-panel'>
+          }}>
             <div className="flex-between" style={{ marginBottom: 16 }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{selected.first_name} {selected.last_name}</div>
