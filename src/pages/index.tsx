@@ -244,8 +244,8 @@ export default function Dashboard() {
                 View All <ArrowRight size={12} />
               </Link>
             </div>
-            <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={revenueChart} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+            <ResponsiveContainer width="100%" height={180}>
+              <AreaChart data={revenueChart} margin={{ top: 4, right: 8, bottom: 0, left: -10 }}>
                 <defs>
                   <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--gold)" stopOpacity={0.3} />
@@ -253,9 +253,9 @@ export default function Dashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
-                <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false}
-                  tickFormatter={v => `$${(v/1000).toFixed(0)}k`} width={42} />
+                <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false}
+                  tickFormatter={v => `$${(v/1000).toFixed(0)}k`} width={36} />
                 <Tooltip
                   contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-mid)', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 12 }}
                   labelStyle={{ color: 'var(--text-secondary)' }}
@@ -285,43 +285,31 @@ export default function Dashboard() {
                 No arrivals or departures today
               </div>
             ) : (
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Guest</th>
-                      <th>Room</th>
-                      <th>Movement</th>
-                      <th>Tier</th>
-                      <th>Method</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {todayReservations.map(r => (
-                      <tr key={r.id}>
-                        <td>
-                          <Link href={`/guests/${r.guest_id}`} style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                            {guestName(r.guests)}
-                          </Link>
-                        </td>
-                        <td style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{r.room_number}</td>
-                        <td>
-                          <span className={`badge badge-${r.check_in === format(new Date(), 'yyyy-MM-dd') ? 'checked_in' : 'checked_out'}`}>
-                            {r.check_in === format(new Date(), 'yyyy-MM-dd') ? 'Arriving' : 'Departing'}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`badge badge-${r.guests?.vip_tier}`}>
-                            {r.guests?.vip_tier}
-                          </span>
-                        </td>
-                        <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
-                          {r.arrival_method?.replace('_', ' ')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {todayReservations.map(r => {
+                  const isArriving = r.check_in === format(new Date(), 'yyyy-MM-dd')
+                  return (
+                    <Link key={r.id} href={`/guests/${r.guest_id}`} style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '10px 12px', borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg-overlay)', border: '1px solid var(--border-subtle)',
+                      textDecoration: 'none',
+                    }}>
+                      <span className={`badge badge-${isArriving ? 'checked_in' : 'checked_out'}`} style={{ flexShrink: 0 }}>
+                        {isArriving ? '↓ In' : '↑ Out'}
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {guestName(r.guests)}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                          {r.room_number} · {r.arrival_method?.replace(/_/g, ' ')}
+                        </div>
+                      </div>
+                      <span className={`badge badge-${r.guests?.vip_tier}`} style={{ flexShrink: 0 }}>{r.guests?.vip_tier}</span>
+                    </Link>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -339,40 +327,31 @@ export default function Dashboard() {
                 All Guests <ArrowRight size={12} />
               </Link>
             </div>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Tier</th>
-                    <th>Nationality</th>
-                    <th>Last Stay</th>
-                    <th>Lifetime Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentGuests.map(g => (
-                    <tr key={g.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          {tierDot(g.vip_tier)}
-                          <Link href={`/guests/${g.id}`} style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                            {guestName(g)}
-                          </Link>
-                        </div>
-                      </td>
-                      <td><span className={`badge badge-${g.vip_tier}`}>{g.vip_tier}</span></td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{g.nationality}</td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
-                        {g.last_stay ? format(parseISO(g.last_stay), 'dd MMM yyyy') : '—'}
-                      </td>
-                      <td style={{ color: 'var(--gold)', fontSize: 13 }}>
-                        {g.total_revenue ? formatCurrency(g.total_revenue, 'USD') : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {recentGuests.map(g => (
+                <Link key={g.id} href={`/guests/${g.id}`} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 12px', borderRadius: 'var(--radius-sm)',
+                  background: 'var(--bg-overlay)', border: '1px solid var(--border-subtle)',
+                  textDecoration: 'none',
+                }}>
+                  {tierDot(g.vip_tier)}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {guestName(g)}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                      {g.nationality} · {g.last_stay ? format(parseISO(g.last_stay), 'dd MMM yy') : 'No stays'}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 500 }}>
+                      {g.total_revenue ? formatCurrency(g.total_revenue, 'USD') : '—'}
+                    </div>
+                    <span className={`badge badge-${g.vip_tier}`} style={{ marginTop: 3 }}>{g.vip_tier}</span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </div>

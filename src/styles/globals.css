@@ -59,14 +59,14 @@
 
 /* RESET */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{font-size:16px;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;}
-body{font-family:var(--font-ui);background:var(--bg-base);color:var(--text-primary);min-height:100vh;
+html{font-size:16px;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;overflow-x:hidden;max-width:100vw;}
+body{font-family:var(--font-ui);background:var(--bg-base);color:var(--text-primary);min-height:100vh;overflow-x:hidden;max-width:100vw;
   transition:background var(--transition),color var(--transition);-webkit-overflow-scrolling:touch;}
 a{color:inherit;text-decoration:none;}
 button{font-family:var(--font-ui);}
 
 /* LAYOUT */
-.crm-shell{display:flex;min-height:100vh;}
+.crm-shell{display:flex;min-height:100vh;overflow-x:hidden;}
 .crm-sidebar{
   position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-width);
   background:var(--bg-surface);border-right:1px solid var(--border-subtle);
@@ -75,15 +75,16 @@ button{font-family:var(--font-ui);}
 }
 .crm-sidebar.open{transform:translateX(0);box-shadow:var(--shadow-lg);}
 @media(min-width:1025px){.crm-sidebar{transform:translateX(0);box-shadow:none;}}
-.crm-main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.crm-main{flex:1;min-width:0;max-width:100%;overflow-x:hidden;display:flex;flex-direction:column;}
 @media(min-width:1025px){.crm-main{margin-left:var(--sidebar-width);}}
 .crm-topbar{
   position:sticky;top:0;z-index:50;height:var(--header-height);
   background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);
   display:flex;align-items:center;justify-content:space-between;
   padding:0 var(--space-page);transition:background var(--transition);
+  max-width:100%;overflow:hidden;
 }
-.crm-content{flex:1;padding:var(--space-page);}
+.crm-content{flex:1;padding:var(--space-page);overflow-x:hidden;max-width:100%;}
 
 /* SIDEBAR INTERNALS */
 .sidebar-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border-subtle);flex-shrink:0;}
@@ -174,7 +175,7 @@ button{font-family:var(--font-ui);}
 
 /* TABLES */
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-table{width:100%;border-collapse:collapse;min-width:480px;}
+table{width:100%;border-collapse:collapse;min-width:0;}
 thead th{text-align:left;font-size:9px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted);padding:8px 12px;border-bottom:1px solid var(--border-subtle);white-space:nowrap;}
 @media(min-width:768px){thead th{padding:10px 16px;}}
 tbody td{padding:12px 12px;font-size:14px;color:var(--text-primary);border-bottom:1px solid var(--border-subtle);vertical-align:middle;}
@@ -275,132 +276,90 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:0.12em;text-tr
   .crm-sidebar{padding-bottom:env(safe-area-inset-bottom);}
 }
 
-/* ================================================================
-   MOBILE OVERRIDES — Lead Gen pages
-   All split-panel layouts stack on mobile.
-   Tables reduce to essential columns only.
-================================================================ */
-
-/* Force tables to be readable without horizontal scroll on mobile */
-@media(max-width:767px) {
-  /* Reduce global table min-width */
-  table { min-width: 0; width: 100%; }
-
-  /* Hide lower-priority table columns on mobile */
-  .hide-mobile { display: none !important; }
-
-  /* Split panel: stack vertically */
-  .split-panel {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Detail panel: not sticky on mobile, full width */
-  .detail-panel {
-    position: static !important;
-    top: unset !important;
-  }
-
-  /* Page header row: stack on mobile */
-  .page-header-row {
-    flex-direction: column;
-    gap: 12px;
-  }
-  .page-header-row .btn { align-self: flex-start; }
-
-  /* Stat grid: 2-col always on mobile */
-  .stat-grid {
-    grid-template-columns: repeat(2,1fr) !important;
-    gap: 8px !important;
-  }
-
-  /* grid-2 stays single col on mobile */
-  .grid-2 { grid-template-columns: 1fr !important; }
-
-  /* Filter rows wrap tightly */
-  .filter-row { gap: 6px; }
-
-  /* Cards: tighter padding on mobile */
-  .card { padding: 14px; }
-
-  /* Form rows: single col on mobile */
-  .form-row { grid-template-columns: 1fr !important; gap: 0 !important; }
-}
-
-/* Tablet: 768–1024 */
-@media(min-width:768px) and (max-width:1024px) {
-  table { min-width: 0; }
-  .split-panel {
-    grid-template-columns: 1fr !important;
-  }
-  .detail-panel {
-    position: static !important;
-  }
-}
 
 /* ================================================================
-   MOBILE BOTTOM SHEET — Detail panels slide up from bottom
-   On screens < 768px the detail panel becomes a fixed bottom drawer.
+   MOBILE — comprehensive overflow prevention + bottom sheet panels
+   Target: iPhone 13 Pro Max (430px) and all phones < 768px
 ================================================================ */
-@media(max-width:767px) {
-  .detail-panel {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    top: auto !important;
-    max-height: 80vh !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 16px 16px 0 0 !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-bottom: none !important;
-    border-top: 1px solid var(--border-mid) !important;
-    z-index: 200;
-    box-shadow: 0 -8px 40px rgba(0,0,0,0.7) !important;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+
+/* Global containment */
+@media(max-width:767px){
+  html,body{overflow-x:hidden;max-width:100vw;}
+  .card,.card-elevated,.crm-content,.crm-main,.crm-topbar,
+  .dashboard-grid,.stat-grid,.grid-2,.grid-3,.table-wrap{max-width:100%;box-sizing:border-box;}
+  table{min-width:0!important;width:100%;}
+  .recharts-responsive-container,.recharts-wrapper{overflow:hidden!important;}
+
+  /* Dashboard grid: stack */
+  .dashboard-grid{grid-template-columns:1fr!important;}
+
+  /* Stat grid: always 2-col, bleed to edges */
+  .stat-grid{
+    grid-template-columns:repeat(2,1fr)!important;gap:8px!important;
+    margin-left:calc(-1 * var(--space-page));margin-right:calc(-1 * var(--space-page));
+    padding-left:var(--space-page);padding-right:var(--space-page);
   }
 
-  /* Drag handle visual hint */
-  .detail-panel::before {
-    content: '';
-    display: block;
-    width: 36px;
-    height: 4px;
-    background: var(--border-mid);
-    border-radius: 2px;
-    margin: 8px auto 16px;
+  /* Typography */
+  .page-title{font-size:22px!important;}
+  .card-value{font-size:26px!important;}
+  .card-value-md{font-size:20px!important;}
+  .topbar-page-title{font-size:15px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;}
+
+  /* Cards */
+  .card,.card-elevated{padding:14px 12px;}
+
+  /* Forms */
+  .form-row,.form-row-3{grid-template-columns:1fr!important;gap:0!important;}
+
+  /* Grids */
+  .grid-2{grid-template-columns:1fr!important;}
+
+  /* Split panels stack */
+  .split-panel{grid-template-columns:1fr!important;}
+
+  /* Detail panel = bottom sheet */
+  .detail-panel{
+    position:fixed!important;
+    left:0!important;right:0!important;bottom:0!important;top:auto!important;
+    max-height:80vh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;
+    border-radius:16px 16px 0 0!important;
+    border-left:none!important;border-right:none!important;border-bottom:none!important;
+    border-top:1px solid var(--border-mid)!important;
+    z-index:200;box-shadow:0 -8px 40px rgba(0,0,0,0.7)!important;
+    padding-bottom:calc(16px + env(safe-area-inset-bottom))!important;
+  }
+  .detail-panel::before{
+    content:'';display:block;width:36px;height:4px;
+    background:var(--border-mid);border-radius:2px;margin:8px auto 16px;
   }
 
-  /* Dim the background when panel is open */
-  .split-panel-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 199;
-    backdrop-filter: blur(2px);
+  /* Backdrop */
+  .split-panel-backdrop{
+    display:block;position:fixed;inset:0;
+    background:rgba(0,0,0,0.5);z-index:199;backdrop-filter:blur(2px);
   }
+
+  /* Hide non-essential columns */
+  .hide-mobile{display:none!important;}
+
+  /* Layout */
+  .page-header-row{flex-direction:column;gap:10px;}
+  .page-header-row .btn{align-self:flex-start;}
+  .filter-row{gap:6px;}
+  .tab-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .addon-grid{grid-template-columns:1fr!important;}
 }
 
-@media(min-width:768px) {
-  .split-panel-backdrop { display: none; }
+/* Tablet: stack panels, no min-width on tables */
+@media(min-width:768px) and (max-width:1024px){
+  .split-panel{grid-template-columns:1fr!important;}
+  .detail-panel{position:static!important;}
+  .split-panel-backdrop{display:none;}
+  table{min-width:0!important;}
 }
 
-/* Nurture: sequence steps scroll on small screens */
-@media(max-width:767px) {
-  /* Attribution bar chart: shrink height */
-  .recharts-responsive-container { min-height: 160px; }
-
-  /* Availability calendar: smaller date cells */
-  .availability-day { font-size: 11px !important; }
-
-  /* Proposals add-on grid: single col on narrow mobile */
-  .addon-grid { grid-template-columns: 1fr !important; }
-
-  /* Page title smaller on mobile */
-  .page-title { font-size: 24px !important; }
-
-  /* Stat grid card values: smaller on tiny screens */
-  .card-value { font-size: 28px !important; }
+/* Desktop: backdrop never shows */
+@media(min-width:768px){
+  .split-panel-backdrop{display:none;}
 }
