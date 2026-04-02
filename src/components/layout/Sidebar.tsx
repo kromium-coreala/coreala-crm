@@ -18,7 +18,18 @@ export function useTheme() { return useContext(ThemeContext) }
 // ─── Nav structure ────────────────────────────────────────────────
 const NAV = [
   {
-    label: 'Operations',
+    label: 'Lead Generation',
+      items: [
+        { href: '/enquiries',   icon: Inbox,        label: 'Enquiries'    },
+        { href: '/attribution', icon: PieChart,      label: 'Attribution'  },
+        { href: '/availability',icon: CalendarRange, label: 'Availability' },
+        { href: '/nurture',     icon: Mail,          label: 'Nurture'      },
+        { href: '/proposals',   icon: FileText,      label: 'Proposals'    },
+        { href: '/tours',       icon: MapPin,        label: 'Tours'        },
+      ],
+    },
+    {
+      label: 'Operations',
     items: [
       { href: '/',             icon: LayoutDashboard, label: 'Dashboard'   },
       { href: '/occupancy',    icon: BedDouble,       label: 'Occupancy'   },
